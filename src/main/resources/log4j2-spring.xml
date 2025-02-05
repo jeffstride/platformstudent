@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+  <Appenders>
+    <File name="PhysicsFile" fileName="logs/physics.log">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t]:  %msg%n"></PatternLayout>
+      <!-- 
+      <Policies>
+        <OnStartupTriggeringPolicy />
+      </Policies>
+      <DefaultRolloverStrategy>
+        <Delete basePath="logs" maxDepth="1">
+          <IfFileName glob="*" />
+        </Delete>
+      </DefaultRolloverStrategy>
+      -->
+    </File>
+    <File name="PerformanceFile" fileName="logs/perf.log">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t]:  %msg%n"></PatternLayout>
+    </File>
+    <File name="UserActionFile" fileName="logs/user.log">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t]:  %msg%n"></PatternLayout>
+    </File>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+    </Console>
+  </Appenders>
+  <Loggers>
+    <Logger name="PhysicsFile" level="info" additivity="false">
+      <AppenderRef ref="PhysicsFile" />
+    </Logger>
+    <Logger name="UserActionFile" level="debug" additivity="false">
+      <AppenderRef ref="UserActionFile" />
+    </Logger>
+    <Logger name="PerformanceFile" level="info" additivity="false">
+      <AppenderRef ref="PerformanceFile" />
+    </Logger>
+    <Root level="info">
+      <AppenderRef ref="Console" />
+    </Root>
+  </Loggers>
+</Configuration>

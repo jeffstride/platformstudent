@@ -1,0 +1,14 @@
+HELP.md
+
+# ignore the maven target directory
+**/target/
+
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ignore log files
+**/logs/
+
+# no class files
+*.class
