@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent;
 public class GamePanel extends AnimationPanel {
 
     //private EntityManager entityManager;
-    //private LoadsData loader;
+    //private DataService loader;
 
     public GamePanel() {
         // Use Dependency Injection to get the loader object
