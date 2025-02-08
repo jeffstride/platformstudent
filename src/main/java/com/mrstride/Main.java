@@ -2,6 +2,8 @@ package com.mrstride;
 
 import java.io.File;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,12 @@ public class Main implements CommandLineRunner {
         // Alternatively, I can set the headless to be false and all is good.
         System.setProperty("java.awt.headless", "false");
         SpringApplication.run(Main.class, args);
+
+        // REVIEW: Is it bad to do code here versus in the run() method?
+        SwingUtilities.invokeLater(() -> {
+            MainFrame.theFrame = new MainFrame();
+            MainFrame.theFrame.createFrame();
+        });
     }
 
     @Override
@@ -40,8 +48,6 @@ public class Main implements CommandLineRunner {
         System.out.println("Hello World");
         
         behave.act();
-
-        MainFrame.startGUI();
     }
 
     public static void setupLoggers() {

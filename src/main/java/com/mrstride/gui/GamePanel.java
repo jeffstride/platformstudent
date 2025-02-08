@@ -40,7 +40,7 @@ public class GamePanel extends AnimationPanel {
         long startTime = System.currentTimeMillis();
 
         // get our offset
-        int xOffset = 0; // entityManager.getXOffset();
+        // int xOffset = entityManager.getXOffset();
         // tell all our entities to paint
         // entityManager.drawAllObjects(g, xOffset, 0);
 

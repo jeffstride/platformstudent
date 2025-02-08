@@ -25,24 +25,10 @@ public class MainFrame extends JFrame {
     private GamePanel gamePanel;
     private SettingsDialog settingsPanel;
 
-    public static void startGUI() throws InterruptedException {
-        MainFrame.theFrame = new MainFrame();
-
-        SwingUtilities.invokeLater(() -> theFrame.createFrame(theFrame));
-
-        // only needed if we do work after the frame is created
-        synchronized (theFrame) {
-            theFrame.wait();
-        }
-
-    }
-
     /**
      * Create the main JFrame and all animation JPanels.
-     * 
-     * @param semaphore The object to notify when complete
      */
-    private void createFrame(Object semaphore) {
+    public void createFrame() {
         addMenuBar();
         panels = new JPanel[2];
 
@@ -67,9 +53,11 @@ public class MainFrame extends JFrame {
         System.out.println("All done creating our frame");
         this.setVisible(true);
         
-        synchronized (semaphore) {
-            semaphore.notify();
+        /* 
+        synchronized (this) {
+            this.notify();
         }
+        */
     }
 
     public static void showPanel(int index) {
@@ -134,6 +122,4 @@ public class MainFrame extends JFrame {
         
         return menu;
     }
-
-
 }

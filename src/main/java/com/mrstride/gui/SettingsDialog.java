@@ -3,6 +3,17 @@ package com.mrstride.gui;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+/**
+ * The Student will do the following things:
+ * 
+ * 1) Create an ImageService (and Test). Large Task.
+ * 2) Use IoC to get the ImageService via getBean().
+ * 3) Add needed images for this dialog to the image service
+ * 4) Create this Dialog
+ *     - Use LayoutManagers to resize
+ *     - Save settings into a Model
+ *     - Present a progress bar (artificially long)
+ */
 public class SettingsDialog extends JPanel {
 
     public SettingsDialog() {
