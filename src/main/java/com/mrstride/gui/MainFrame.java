@@ -13,17 +13,10 @@ public class MainFrame extends JFrame {
 
     public static MainFrame theFrame = null;
 
-    public static Logger physicsLogger;
-    public static Logger consoleLogger;
-    public static Logger actionsLogger;
-    public static Logger perfLogger;
-
     // Our application may have many animated panels
     // But only one panel will be currently visible at a time
     private JPanel[] panels;
     private int currentPanel = -1;
-    private GamePanel gamePanel;
-    private SettingsDialog settingsPanel;
 
     /**
      * Create the main JFrame and all animation JPanels.
@@ -32,32 +25,22 @@ public class MainFrame extends JFrame {
         addMenuBar();
         panels = new JPanel[2];
 
-        this.gamePanel = new GamePanel();
-        this.settingsPanel = new SettingsDialog();
-
-        panels[GAME_PANEL] = gamePanel;
-        panels[SETTINGS_PANEL] = settingsPanel;
+        panels[GAME_PANEL] = new GamePanel();
+        panels[SETTINGS_PANEL] = new SettingsDialog();
 
         for (JPanel panel : panels) {
             panel.setBounds(0, 0, MainFrame.WIDTH, MainFrame.HEIGHT);
             this.add(panel);
             panel.setVisible(false);
         }
-
-        this.setSize(WIDTH, HEIGHT);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // TODO: set size, title, and close operation
 
         this.currentPanel = -1;
         showPanel(GAME_PANEL);
 
         System.out.println("All done creating our frame");
-        this.setVisible(true);
-        
-        /* 
-        synchronized (this) {
-            this.notify();
-        }
-        */
+
+        // TODO: JFrame must be set to visible 
     }
 
     public static void showPanel(int index) {
@@ -96,30 +79,36 @@ public class MainFrame extends JFrame {
         JMenuBar bar = new JMenuBar();
         this.setJMenuBar(bar);
 
-        JMenu menu = createAnimationMenu();
+        JMenu menu = createMainMenu();
+        bar.add(menu);
+
+        menu = createConsoleMenu();
         bar.add(menu);
     }
 
     /**
-     * Create the top-level menu that controls Animation
+     * Create the top-level menu for Options
      * 
      * @return The JMenu object with all the JMenuItems in it.
      */
-    private JMenu createAnimationMenu() {
+    private JMenu createMainMenu() {
         JMenu menu = new JMenu("Options");
         menu.setMnemonic('O');
 
-        JMenuItem item = new JMenuItem("Restart", 'B');
-        item.addActionListener(e -> {
-            showPanel(GAME_PANEL);
-            gamePanel.restart();
-        });
-        menu.add(item);
-
-        item = new JMenuItem("Settings...", 'S');
-        item.addActionListener(e -> showPanel(1));
-        menu.add(item);
+        // TODO: Create menu items
         
+        return menu;
+    }
+    /**
+     * Create the top-level menu for Console work
+     * 
+     * @return The JMenu object with all the JMenuItems in it.
+     */
+    private JMenu createConsoleMenu() {
+        JMenu menu = new JMenu("Console");
+        menu.setMnemonic('C');
+
+        // TODO: create menu items
         return menu;
     }
 }

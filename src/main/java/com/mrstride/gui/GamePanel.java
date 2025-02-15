@@ -50,31 +50,15 @@ public class GamePanel extends AnimationPanel {
 
     private void createEventHandlers() {
         // entityManager.createEventHandlers(this);
-
-        this.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent me) {
-                onMouseClicked(me);
-            }
-        });
-
-        this.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                onKeyClicked(e);
-            }
-        });
+        // TODO: Add mouse listener and add key listener.
     }
 
-    private void onKeyClicked(KeyEvent e) {
-        //char x = e.getKeyChar();
-        //int keyCode = e.getKeyCode();
-    }
-
+    /*
     private void onMouseClicked(MouseEvent me) {
         int x = me.getX();
         int y = me.getY();
         Main.actionsLogger.info("Clicked at ({}, {})", x, y);
     }
+    */
 
 }

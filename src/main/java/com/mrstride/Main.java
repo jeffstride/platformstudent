@@ -36,11 +36,8 @@ public class Main implements CommandLineRunner {
         System.setProperty("java.awt.headless", "false");
         SpringApplication.run(Main.class, args);
 
-        // REVIEW: Is it bad to do code here versus in the run() method?
-        SwingUtilities.invokeLater(() -> {
-            MainFrame.theFrame = new MainFrame();
-            MainFrame.theFrame.createFrame();
-        });
+        // TODO: invoke the UI Thread to create the Main frame. 
+        // Save it in MainFrame.theFrame.
     }
 
     @Override
