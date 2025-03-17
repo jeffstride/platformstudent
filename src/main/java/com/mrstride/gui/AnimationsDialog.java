@@ -10,13 +10,12 @@ import javax.swing.JPanel;
  * 2) Use IoC to get the ImageService via getBean().
  * 3) Add needed images for this dialog to the image service
  * 4) Create this Dialog
- *     - Use LayoutManagers to resize
- *     - Save settings into a Model
- *     - Present a progress bar (artificially long)
+ *     - Use LayoutManagers
+ *     - Enable the user to examine images and animations
  */
-public class SettingsDialog extends JPanel {
+public class AnimationsDialog extends JPanel {
 
-    public SettingsDialog() {
+    public AnimationsDialog() {
         addComponents();
         // change this to some Layout Manager
         setLayout(null);
@@ -24,15 +23,13 @@ public class SettingsDialog extends JPanel {
 
     public void addComponents() {
         JButton btnOkay = new JButton("OK");
-        JButton btnCancel = new JButton("Cancel");
+
         add(btnOkay);
-        add(btnCancel);
+
         btnOkay.setBounds(30, 10, 70, 25);
-        btnCancel.setBounds(150, 10, 90, 25);
 
         // Add action listener to the buttons
         btnOkay.addActionListener(e -> onOK());
-        btnCancel.addActionListener(e -> MainFrame.showPanel(MainFrame.GAME_PANEL));
 
         // Set the OK button as the default button
         MainFrame.theFrame.getRootPane().setDefaultButton(btnOkay);
@@ -42,8 +39,6 @@ public class SettingsDialog extends JPanel {
     }
 
     private void onOK() {
-        // TODO: Save work
         MainFrame.showPanel(MainFrame.GAME_PANEL);
     }
-
 }

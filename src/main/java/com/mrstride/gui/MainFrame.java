@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 public class MainFrame extends JFrame {
 
     public static final int GAME_PANEL = 0;
-    public static final int SETTINGS_PANEL = 1;
+    public static final int ANIIMATIONS_PANEL = 1;
     public static final int WIDTH = 800;
     public static final int HEIGHT = 800;
 
@@ -26,7 +26,7 @@ public class MainFrame extends JFrame {
         panels = new JPanel[2];
 
         panels[GAME_PANEL] = new GamePanel();
-        panels[SETTINGS_PANEL] = new SettingsDialog();
+        panels[ANIIMATIONS_PANEL] = new AnimationsDialog();
 
         for (JPanel panel : panels) {
             panel.setBounds(0, 0, MainFrame.WIDTH, MainFrame.HEIGHT);
