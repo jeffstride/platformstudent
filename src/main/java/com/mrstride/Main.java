@@ -2,8 +2,6 @@ package com.mrstride;
 
 import java.io.File;
 
-import javax.swing.SwingUtilities;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +9,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.mrstride.gui.MainFrame;
 
 /**
  * Hello world!

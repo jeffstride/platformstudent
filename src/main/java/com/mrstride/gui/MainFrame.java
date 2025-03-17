@@ -1,7 +1,6 @@
 package com.mrstride.gui;
 
 import javax.swing.*;
-import org.apache.logging.log4j.Logger;
 
 // This class starts all the threads and creates all the panels. It also creates the menu options.
 public class MainFrame extends JFrame {
