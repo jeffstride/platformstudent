@@ -62,16 +62,6 @@
         <artifactId>log4j-core</artifactId>
         <version>2.24.3</version>
     </dependency>
-    <dependency>
-      <!-- Not sure if this mvn command is needed or not from the testmavenproj directory:
-      ..\mvnw.cmd install:install-file -Dfile=lib/StrideLayout.jar -DgroupId=resizer -DartifactId=stridelayout -Dversion=1.0 -Dpackaging=jar  
-      -->
-      <groupId>resizer</groupId>
-      <artifactId>stridelayout</artifactId>
-      <version>1.0</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/lib/StrideLayout.jar</systemPath>
-    </dependency>
   </dependencies>
 
   <build>
