@@ -8,12 +8,9 @@ import java.util.TimerTask;
 
 public abstract class AnimationPanel extends JPanel {
 
-    public static final int REPAINT_DELAY = 10;
 	public static final int PHYSICS_DELAY = 10;
-	public static long PHYSICS_SPEED = 5;
 
     private Thread sleepThread;
-	private Timer physicsTimer;
 	private Timer paintTimer;
 
     private volatile boolean done = false;
@@ -25,19 +22,12 @@ public abstract class AnimationPanel extends JPanel {
     public abstract void update();
 
     public void start2() {
-        // ScheduleAtFixedRate will be called even if the previous repaint() took to long.
+        // ScheduleAtFixedRate will be called even if the previous repaint() took too long.
         // But, since repaint() is just a request, this should be fine and good.
-        /*
+
+        // `schedule` will possibly delay after the completion of the previous task 
         paintTimer = new Timer();
         paintTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() { repaint(); } 
-            }, 0, PHYSICS_DELAY);
-        */
-
-        // schedule will possibly delay after the completion of the previous task 
-        physicsTimer = new Timer();
-        physicsTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() { update(); repaint(); }
             }, 0, AnimationPanel.PHYSICS_DELAY);
@@ -66,10 +56,6 @@ public abstract class AnimationPanel extends JPanel {
         if (paintTimer != null) {
             paintTimer.cancel();
             paintTimer = null;
-        }
-        if (physicsTimer != null) {
-            physicsTimer.cancel();
-            physicsTimer = null;
         }
         if (sleepThread != null) {
             done = true;
