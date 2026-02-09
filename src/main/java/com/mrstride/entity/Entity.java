@@ -1,0 +1,286 @@
+package com.mrstride.entity;
+
+// TODO: Update this to be more like the LATEST Entity class
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.awt.Rectangle;
+import java.awt.event.KeyListener;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
+import com.mrstride.services.AnimationFactory;
+import com.mrstride.services.ImageService;
+import com.mrstride.gui.Line;
+
+/**
+ * This base Entity does not move. It does not fall. It does not collide with anything.
+ */
+public class Entity  {
+    
+    /**
+     * The x, y, width, height coordinates should be easily accessibly by derived classes.
+     * Make them protected instead of private.
+     */
+    protected int x;
+    protected int y;
+    protected int width;
+    protected int height;
+
+    // determines whether to resize according to the original size of the image
+    private boolean useImageSize;
+
+    // image id of the entity
+    private String id;
+
+    private AnimationFactory aniFactory;
+    private ImageService imageService;
+    protected EntityFactory entityFactory;
+
+    /**
+     * Ultimately, the constants 0 & 1 will be changed to:
+     * Animation.FACING_RIGHT = 0;
+     * Animation.FACING_LEFT = 1
+     */
+    private int direction = 0;
+
+    /**
+     * This is the bounding rectangle of this Entity. It is used for hit detection.
+     */
+    protected Rectangle boundingRect;
+
+    /**
+     * These are the images for the non-animated sprite that will be drawn
+     * depending on which direction the entity is facing.
+     */
+    private BufferedImage spriteRight = null;
+    private BufferedImage spriteLeft= null;
+
+    /**
+     * Keep a map of extended properties for this Entity.
+     */
+    protected Map<String, Object> properties;
+    protected Map<String, Object> initialProperties;
+
+    protected Logger physicsLogger = null;
+    protected Logger consoleLogger;
+
+    /**
+     * Create an entity with an image and set size. If the image is null then
+     * the Entity is drawn as a grey box.
+     * 
+     * @param id The id of the image (the key)
+     * @param x The starting x-position of this entity
+     * @param y The starting y-position of this entity
+     * @param width Set the entity to this width
+     * @param height Set the entity to this height.
+     */    
+    public Entity(String id, int x, int y, int width, int height, Map<String, Object> properties) {
+        internalInit(id, x, y, width, height, properties);
+
+        // Load the image but keep our set width/height
+        this.useImageSize = false;
+    }
+
+    /**
+     * Create an entity using the image's information to set the width & height
+     * @param id The id of the image (the key)
+     * @param x The starting x-position of this entity
+     * @param y The starting y-position of this entity
+     */
+    public Entity(String id, int x, int y, Map<String, Object> properties) {
+        internalInit(id, x, y, 0, 0, properties);
+        this.useImageSize = true;
+    }
+
+    /**
+     * Create an entity initially without an image. Establish all the fundamentals.
+     * Some values may be overridden later.
+     * 
+     * @param x The starting x-position of this entity
+     * @param y The starting y-position of this entity
+     * @param width Set the entity to this width
+     * @param height Set the entity to this height.
+     * @param properties The set of properties to as the initial set
+     */
+    public void internalInit(String id, int x, int y, int width, int height, Map<String, Object> properties) {
+        this.id = id;
+        spriteRight = null;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        boundingRect = new Rectangle(x, y, Math.max(1, width), Math.max(1, height));
+        this.initialProperties = properties == null ? new HashMap<>() : new HashMap<>(properties);
+        this.properties = new HashMap<>(initialProperties);
+    }
+
+    // This allows us to manually inject services while not complicating the constructors.
+    // These need to be set before we call init().
+    // This follows the Setter Injection style, but is not @Autowired
+    public void setServices(AnimationFactory factory, ImageService imgService, EntityFactory entityFactory) {
+        this.aniFactory = factory;
+        this.imageService = imgService;
+        this.entityFactory = entityFactory;
+    }
+
+    /** 
+     * The initialization process will require Autowired components/services.
+     * The Entity needs to be autowired BEFORE we call init.
+     */ 
+    public void init() {
+        physicsLogger = LogManager.getLogger("PhysicsFile");
+        consoleLogger = LogManager.getLogger("console");
+        
+        // Load the image and set our width/height according to the image's size
+        loadEntityImages(id, useImageSize);
+    }
+
+    /**
+     * An entity may not move around, or fall, but it may be animated.
+     * Derived classes would override this to move the object as necessary.
+     *  
+     * @param walls
+     * @param floors
+     */
+    public void update(List<Rectangle> walls, List<Line> floors) {
+        // The background entities move anywhere without restrictions.
+        // They have no collisions with walls, ceilings, or floors.
+    }
+
+    /**
+     * This is an alternative way to add Entities during update that should enable
+     * us to use parallelStream to process all the Entities.
+     * A derived class that wants to add entities during update() would add them to
+     * the thread-safe Queue provided here.
+     * 
+     * @param walls
+     * @param floors
+     * @param toAdd
+     * @return True to keep the item in the list of entities. False to remove it.
+     */
+    public boolean update(List<Rectangle> walls, List<Line> floors, Queue<Entity> toAdd) {
+        update(walls, floors);
+        return true;
+    }
+
+    public Rectangle getBoundingRect() {
+        return boundingRect;
+    }
+
+
+    /**
+     * Allows us to hook up listeners for Entities by getting them from the Entity.
+     * The Hero will override.
+     * 
+     * @return The KeyListener
+     */
+    public KeyListener getKeyListener() {
+        return null;
+    }
+    
+    public boolean isHero() {
+        return properties.containsKey("isHero");
+    }
+
+    public boolean isHitEntity() {
+        return properties.containsKey("isHit");
+    }
+
+    public Object getProperty(String name) {
+        return properties.get(name);
+    }
+
+    public Object setProperty(String name, Object value) {
+        return properties.put(name, value);
+    }
+
+    /**
+     * Allow derived classes to get notifications if it hit the Hero.
+     * EntityManager calls this so we need to make it public.
+     * @param hero
+     */
+    public void onHitHero(Hero hero) {
+
+    }
+
+    /**
+     * Load the image for this Entity.
+     * If we have Animation, then set that up, too.
+     * The image will be resized and cached for left and right facing directions.
+     * 
+     * @param id image id used to load the image
+     * @param useImageSize true = use the size of the image for this Entity's width/height.
+     *                     false = use the size as already set in the constructor.
+     */
+    private void loadEntityImages(String id, boolean useImageSize) {
+        // TODO: Use the image service to load the BufferedImage for this Entity
+
+        // assure that we have our bounding rectangle set
+        boundingRect = new Rectangle(x, y, width, height);
+    }
+
+    /**
+     * The player can reset the game. This will move the Entity back to the indicated
+     * location and reset all properties to their initial state (as cached).
+     * 
+     * @param x the x location to move the Entity
+     * @param y the y location to move the Entity
+     */
+    public void reset(int x, int y) {
+        this.x = x;
+        this.y = y;
+
+        this.properties = new HashMap<>(this.initialProperties);
+    }
+
+
+    /**
+     * This draws the entity into the Graphics using the provided offsets.
+     * Derived classes may override to draw as they need to.
+     * If This entity is Animated, then animation will happen using the Animation
+     * service.
+     * 
+     * @param g Graphics to draw into
+     * @param xOffset subtract this from the entity's x-position
+     * @param yOffset subtract this from the entity's y-position
+     */
+    public void draw(Graphics g, int xOffset, int yOffset) {
+        if (spriteRight == null) {
+            g.setColor(Color.GRAY);
+            g.fillRect(x - xOffset, y - yOffset, width, height);
+        } else {
+            BufferedImage sprite = spriteRight;
+            // 1 == Animation.FACING_LEFT
+            if (getDirection() == 1) {
+                sprite = spriteLeft;
+            }
+            g.drawImage(sprite, x - xOffset, y - yOffset, null);
+        }
+    }
+
+    /**
+     * Derived classes can override this to show the correct direction of the sprite.
+     * Otherwise, we use the value provided in setAnimationMode.
+     * 
+     * @return Animation.FACING_LEFT or FACING_RIGHT
+     */
+    public int getDirection() {
+        return direction;
+    }
+
+    /**
+     * Another way to keep track of direction, Left or Right.
+     * @param direction
+     */
+    public void setDirection(int direction) {
+        this.direction = direction;
+    }
+
+}

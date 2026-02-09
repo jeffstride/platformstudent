@@ -23,7 +23,7 @@ public class Main implements CommandLineRunner {
     public static Logger perfLogger;
 
     @Autowired
-    MyBehavior behave;
+    Actor1 behave;
 
     public static void main( String[] args ) {
         setupLoggers();
