@@ -1,5 +1,7 @@
 package com.mrstride.entity;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -7,14 +9,16 @@ import com.mrstride.services.AnimationFactory;
 import com.mrstride.services.ImageService;
 
 /**
- * This EntityFactory will create any Entity or superclass of Entity.
- * It will create the class via Reflection so that many classes 
- * can be added without having to modify this class.
+ * This EntityFactory will create any Entity or subclass of Entity.
  * 
- * Each entity will have its dependencies injects via a Setter Injection
- * style. This injection is done manually.
+ * Mr. Stride used Reflection so that the code is easier to maintain over time.
+ * Furthermore, using variable args is useful here, but not required.
+ * It is easy and acceptable to simply create each Entity explicitly.
  * 
- * Each entity will have its init() method called after the dependencies
+ * Each entity will have its dependencies injects using a Setter Injection
+ * approach. This injection is done manually by calling entity.init();
+ * 
+ * Each entity must have its init() method called after the dependencies
  * have been injected.
  */
 @Component
@@ -29,44 +33,33 @@ public class EntityFactory {
 
     /**
      * All dependencies that are to be injected into the Entities
-     * are injected via the Constructor Injection method.
+     * are injected using the Constructor Injection method.
      */
     @Autowired
     public EntityFactory(AnimationFactory factory, ImageService imgService) {
         this.factory = factory;
         this.imgService = imgService;
     }
-   
+
     /**
-     * Create and initialize an Entity object (or any superclass).
-     * 
-     * @param <T> Must extend Entity
-     * @param type The static class. Example: Entity.class
-     * @param ctorArgs The variable number of arguments to use in the constructor.
-     * @return A fully initialized Entity (or superclass) object.
+     * TODO: Implement a create method to create and initialize an Entity.
+     * This create method will be called from the DataServiceProvider.
      */
-    public <T extends Entity> Entity create(Class<T> type, Object... ctorArgs) {
-        Entity e = instantiate(type, ctorArgs);
 
-        // all Entities need be manually initialized
-        e.setServices(factory, imgService, this);
-        e.init();
+    // Example only. Should be updated or replaced.
+    public Entity create(String type, String id, int x, int y, int width, int height, Map<String, Object> properties) {
+        Entity e = null;
+        if (type.equals("Entity")) {
+            e = new Entity(id, x, y, width, height, properties);
+        }
+        // TODO: handle more types
 
+        // initialize the entity
+        if (e != null) {
+            e.setServices(factory, imgService, this);
+            e.init();
+        }
         return e;
     }
 
-    private <T extends Entity> Entity instantiate(Class<T> type, Object... args) {
-        try {
-            // pick the matching constructor by count of arguments
-            for (var ctor : type.getDeclaredConstructors()) {
-                if (ctor.getParameterCount() == args.length) {
-                    ctor.setAccessible(true);
-                    return (Entity) ctor.newInstance(args);
-                }
-            }
-            throw new IllegalArgumentException("No matching constructor for " + type);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to create instance of " + type, e);
-        }
-    }
 }

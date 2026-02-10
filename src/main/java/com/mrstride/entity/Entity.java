@@ -1,7 +1,5 @@
 package com.mrstride.entity;
 
-// TODO: Update this to be more like the LATEST Entity class
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -15,15 +13,21 @@ import java.util.Queue;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import com.mrstride.gui.Line;
+import com.mrstride.services.Animation;
 import com.mrstride.services.AnimationFactory;
 import com.mrstride.services.ImageService;
-import com.mrstride.gui.Line;
 
 /**
  * This base Entity does not move. It does not fall. It does not collide with anything.
+ * All Entity objects must be created with the EntityFactory to assure that @Autowired
+ * is honored.
  */
 public class Entity  {
     
+    // property that says this entity can hit the Hero
+    public static final String IS_HIT = "isHit";
+
     /**
      * The x, y, width, height coordinates should be easily accessibly by derived classes.
      * Make them protected instead of private.
@@ -43,12 +47,16 @@ public class Entity  {
     private ImageService imageService;
     protected EntityFactory entityFactory;
 
+    // This will get initialized in the init() method.
+    protected Logger physicsLogger;
+    protected Logger consoleLogger;
+
     /**
-     * Ultimately, the constants 0 & 1 will be changed to:
-     * Animation.FACING_RIGHT = 0;
-     * Animation.FACING_LEFT = 1
+     * One of:
+     *  Animation.FACING_RIGHT = 0;
+     *  Animation.FACING_LEFT = 1
      */
-    private int direction = 0;
+    private int direction = Animation.FACING_RIGHT;
 
     /**
      * This is the bounding rectangle of this Entity. It is used for hit detection.
@@ -66,10 +74,7 @@ public class Entity  {
      * Keep a map of extended properties for this Entity.
      */
     protected Map<String, Object> properties;
-    protected Map<String, Object> initialProperties;
 
-    protected Logger physicsLogger = null;
-    protected Logger consoleLogger;
 
     /**
      * Create an entity with an image and set size. If the image is null then
@@ -96,6 +101,8 @@ public class Entity  {
      */
     public Entity(String id, int x, int y, Map<String, Object> properties) {
         internalInit(id, x, y, 0, 0, properties);
+
+        // Load the image and set our width/height to be the image's size
         this.useImageSize = true;
     }
 
@@ -109,7 +116,7 @@ public class Entity  {
      * @param height Set the entity to this height.
      * @param properties The set of properties to as the initial set
      */
-    public void internalInit(String id, int x, int y, int width, int height, Map<String, Object> properties) {
+    private void internalInit(String id, int x, int y, int width, int height, Map<String, Object> properties) {
         this.id = id;
         spriteRight = null;
         this.x = x;
@@ -117,8 +124,7 @@ public class Entity  {
         this.width = width;
         this.height = height;
         boundingRect = new Rectangle(x, y, Math.max(1, width), Math.max(1, height));
-        this.initialProperties = properties == null ? new HashMap<>() : new HashMap<>(properties);
-        this.properties = new HashMap<>(initialProperties);
+        this.properties = properties == null ? new HashMap<>() : new HashMap<>(properties);
     }
 
     // This allows us to manually inject services while not complicating the constructors.
@@ -138,7 +144,6 @@ public class Entity  {
         physicsLogger = LogManager.getLogger("PhysicsFile");
         consoleLogger = LogManager.getLogger("console");
         
-        // Load the image and set our width/height according to the image's size
         loadEntityImages(id, useImageSize);
     }
 
@@ -186,12 +191,20 @@ public class Entity  {
     }
     
     public boolean isHero() {
-        return properties.containsKey("isHero");
+        return false;
     }
 
     public boolean isHitEntity() {
-        return properties.containsKey("isHit");
+        return properties.containsKey(Entity.IS_HIT);
     }
+
+    public int getIntPropertySafely(String name) {
+        Object obj = properties.get(name);
+        if (obj == null || !(obj instanceof Long)) {
+            return 0;
+        }
+        return ((Long) obj).intValue();
+    }    
 
     public Object getProperty(String name) {
         return properties.get(name);
@@ -227,21 +240,6 @@ public class Entity  {
     }
 
     /**
-     * The player can reset the game. This will move the Entity back to the indicated
-     * location and reset all properties to their initial state (as cached).
-     * 
-     * @param x the x location to move the Entity
-     * @param y the y location to move the Entity
-     */
-    public void reset(int x, int y) {
-        this.x = x;
-        this.y = y;
-
-        this.properties = new HashMap<>(this.initialProperties);
-    }
-
-
-    /**
      * This draws the entity into the Graphics using the provided offsets.
      * Derived classes may override to draw as they need to.
      * If This entity is Animated, then animation will happen using the Animation
@@ -252,13 +250,13 @@ public class Entity  {
      * @param yOffset subtract this from the entity's y-position
      */
     public void draw(Graphics g, int xOffset, int yOffset) {
+        // When Animation is added, the image will be retrieved from that Animation object.
         if (spriteRight == null) {
             g.setColor(Color.GRAY);
             g.fillRect(x - xOffset, y - yOffset, width, height);
         } else {
             BufferedImage sprite = spriteRight;
-            // 1 == Animation.FACING_LEFT
-            if (getDirection() == 1) {
+            if (getDirection() == Animation.FACING_LEFT) {
                 sprite = spriteLeft;
             }
             g.drawImage(sprite, x - xOffset, y - yOffset, null);
@@ -282,5 +280,12 @@ public class Entity  {
     public void setDirection(int direction) {
         this.direction = direction;
     }
-
+    
+    public BufferedImage getSpriteLeft() {
+        return this.spriteLeft;
+    }
+    
+    public BufferedImage getSpriteRight() {
+        return this.spriteRight;
+    }
 }

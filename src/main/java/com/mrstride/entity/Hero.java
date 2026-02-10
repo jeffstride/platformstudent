@@ -3,7 +3,7 @@ package com.mrstride.entity;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import com.mrstride.ApplicationContextProvider;
+import com.mrstride.services.Animation;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -12,7 +12,12 @@ import java.util.Map;
 
 public class Hero extends FallingEntity {
 
+    private static Hero hero = new Hero(null, 100, 100, null);
+
+    public static final String SCORE = "score";
+    public static final String HEALTH = "health";
     private static final int X_CENTER = 300;
+
     private boolean leftPressed;
     private boolean rightPressed;
     private boolean jump;
@@ -32,14 +37,29 @@ public class Hero extends FallingEntity {
     public void init() {
         super.init();
         actionsLogger = LogManager.getLogger("UserActionFile");
+                
+        properties.putIfAbsent(HEALTH, 100);
+        properties.putIfAbsent(SCORE, 0);
+        
+        // make this hero THE Hero
+        Hero.hero = this;
     }
 
+    public static Hero getHero() {
+        return Hero.hero;
+    }
+    
     public void reduceHealth(int amt) {
         // Optional: Handle if hero dies, etc.
         // JSON default values are Longs, not Integers.
-        int health = ((Long)getProperty("health")).intValue();
+        int health = ((Long)getProperty(HEALTH)).intValue();
         health -= amt;
-        setProperty("health", Long.valueOf(health));
+        setProperty(HEALTH, Long.valueOf(health));
+    }
+
+    @Override
+    public boolean isHero() {
+        return true;
     }
 
     /**
@@ -62,10 +82,13 @@ public class Hero extends FallingEntity {
         }
 
         if (canJump && jump) {
-            consoleLogger.info("jumping!");
+            consoleLogger.debug("jumping!");
             yVelocity = -15;
         } else if (jump) {
-            consoleLogger.info("not on floor. Can't jump.");
+            consoleLogger.debug("not on floor. Can't jump.");
+        } else if (canJump && yVelocity == 0) {
+            // Entity is not jumping. We are MODE_STILL or MODE_RUNNING
+            // TODO: update animation as necessary
         }
         jump = false;
     }
@@ -91,20 +114,20 @@ public class Hero extends FallingEntity {
                 int keyCode = e.getKeyCode();
                 if (keyCode == KeyEvent.VK_LEFT) {
                     leftPressed = true;
-                    facingDirection = 1;
-                    actionsLogger.info("Left Pressed");
+                    facingDirection = Animation.FACING_LEFT;
+                    actionsLogger.debug("Left Pressed");
                 } else if (keyCode == KeyEvent.VK_RIGHT) {
                     rightPressed = true;
-                    facingDirection = 0;
-                    actionsLogger.info("Right Pressed");
+                    facingDirection = Animation.FACING_RIGHT;
+                    actionsLogger.debug("Right Pressed");
                 } else if (keyCode == KeyEvent.VK_UP) {
-                    actionsLogger.info("Up Pressed");
+                    actionsLogger.debug("Up Pressed");
                     // possible jump
-                    consoleLogger.info("Attempt to jump");
+                    consoleLogger.debug("Attempt to jump");
                     jump = true;
                 } else if (keyCode == KeyEvent.VK_DOWN) {
                     // possible fly down
-                    actionsLogger.info("Down Pressed");
+                    actionsLogger.debug("Down Pressed");
                 }
             }
 
@@ -115,15 +138,15 @@ public class Hero extends FallingEntity {
 
                 if (keyCode == KeyEvent.VK_LEFT) {
                     leftPressed = false;
-                    actionsLogger.info("Left Released");
+                    actionsLogger.debug("Left Released");
                 } else if (keyCode == KeyEvent.VK_RIGHT) {
                     rightPressed = false;
-                    actionsLogger.info("Right Released");
+                    actionsLogger.debug("Right Released");
                 } else if (keyCode == KeyEvent.VK_UP) {
-                    actionsLogger.info("Up Released");
+                    actionsLogger.debug("Up Released");
                 } else if (keyCode == KeyEvent.VK_DOWN) {
                     // stop jumping or flying down
-                    actionsLogger.info("Down Released");
+                    actionsLogger.debug("Down Released");
                 }
             }
         };

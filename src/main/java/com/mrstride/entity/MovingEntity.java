@@ -4,6 +4,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.Rectangle;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import com.mrstride.gui.Line;
 
@@ -54,38 +55,48 @@ public class MovingEntity extends Entity {
 
     public MovingEntity(String id, int x, int y, Map<String, Object> properties) {
         super(id, x, y, properties);
-        physicsLogger.debug(String.format("Starting position is %s", boundingRect));
     }
 
     public MovingEntity(String id, int x, int y, int width, int height, Map<String, Object> properties) {
         super(id, x, y, width, height, properties);
-        physicsLogger.debug(String.format("Starting position is %s", boundingRect));
     }
 
     @Override
-    public void reset(int x, int y) {
-        super.reset(x, y);
-        currentFloor = null;
-        xVelocity = 0;
-        yVelocity = 0;
+    public void init() {
+        super.init();
+        physicsLogger.debug(String.format("Starting position is %s", boundingRect));
     }
 
     /**
      * This is called by the EntityManager at every Tick.
      * All entities are to update themselves.
-     */
+     * 
+     * The thread-safe way to add Entities during update is to first 
+     * process all the Entities then add any spawned entities later.
+     * A derived class that wants to add entities during update() would add them to
+     * the thread-safe Queue provided here.
+     * 
+     * @param walls
+     * @param floors
+     * @param toAdd
+     * @return True to keep the item in the list of entities. False to remove it.
+     */    
     @Override
-    public void update(List<Rectangle> walls, List<Line> floors) {
+    public boolean update(List<Rectangle> walls, List<Line> floors, Queue<Entity> toAdd) {
         calcNextBoundingRect();
 
-        // BUG: Check walls/ceilings before floors so that if we jump into a wall toward
+        // BEWARE: Check walls/ceilings before floors so that if we jump into a wall toward
         // a floor that we don't "land" on the floor on the other side, zero out velocities,
         // and then get push back outside of wall and basically hover.
-        // Or, that we get pulled up onto the floor and through the ceiling.
+        //
+        // BEWARE: Incorrect ordering of can also cause the entity to get pulled up onto the 
+        // floor and through the ceiling.
         checkWalls(walls);
         checkCeilings(floors);
         checkFloors(floors);
         move();
+
+        return true;
     }
 
     /**
