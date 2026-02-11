@@ -79,7 +79,7 @@ public class ImageServiceProvider implements ImageService {
      * Image information is added for later storage and retrieval behavior
      *      
      * @param identifier A unique name for quick lookup and later retrieval
-     * @param uri Could be "relativepath/to/image.jpg" or "https://a.b/image.jpg"
+     * @param uri Could be "relativePath/to/image.jpg" or "https://a.b/image.jpg"
      * @param type Flags to determine if the image is cached locally, the resource directory,
      *        and whether it is a single image or a sprite sheet.
      * @return true if successful

@@ -21,19 +21,6 @@ public abstract class AnimationPanel extends JPanel {
 
     public abstract void update();
 
-    public void start2() {
-        // ScheduleAtFixedRate will be called even if the previous repaint() took too long.
-        // But, since repaint() is just a request, this should be fine and good.
-
-        // `schedule` will possibly delay after the completion of the previous task 
-        paintTimer = new Timer();
-        paintTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() { update(); repaint(); }
-            }, 0, AnimationPanel.PHYSICS_DELAY);
-
-    }
-
     public void start() {
         done = false;
 

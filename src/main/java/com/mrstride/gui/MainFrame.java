@@ -2,30 +2,44 @@ package com.mrstride.gui;
 
 import javax.swing.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.mrstride.entity.EntityFactory;
+import com.mrstride.services.ImageService;
+
 // This class starts all the threads and creates all the panels. It also creates the menu options.
 public class MainFrame extends JFrame {
 
     public static final int GAME_PANEL = 0;
-    public static final int ANIIMATIONS_PANEL = 1;
+    public static final int ANIMATIONS_PANEL = 1;
+    public static final int SAMPLE_PANEL = 2;
     public static final int WIDTH = 800;
     public static final int HEIGHT = 800;
 
     public static MainFrame theFrame = null;
+
+    private final ImageService imageService;
+    private EntityFactory entityFactory;
 
     // Our application may have many animated panels
     // But only one panel will be currently visible at a time
     private JPanel[] panels;
     private int currentPanel = -1;
 
+    public MainFrame(ImageService imageService, EntityFactory entityFactory) {
+        this.imageService = imageService;
+        this.entityFactory = entityFactory;
+    }
     /**
      * Create the main JFrame and all animation JPanels.
      */
     public void createFrame() {
         addMenuBar();
-        panels = new JPanel[2];
+        panels = new JPanel[3];
 
         panels[GAME_PANEL] = new GamePanel();
-        panels[ANIIMATIONS_PANEL] = new AnimationsDialog();
+        panels[ANIMATIONS_PANEL] = new AnimationsDialog();
+        panels[SAMPLE_PANEL] = new SampleLayout(imageService);
 
         for (JPanel panel : panels) {
             panel.setBounds(0, 0, MainFrame.WIDTH, MainFrame.HEIGHT);
@@ -81,7 +95,7 @@ public class MainFrame extends JFrame {
         JMenu menu = createMainMenu();
         bar.add(menu);
 
-        menu = createConsoleMenu();
+        menu = createDemoMenu();
         bar.add(menu);
     }
 
@@ -95,6 +109,11 @@ public class MainFrame extends JFrame {
         menu.setMnemonic('O');
 
         // TODO: Create menu items
+        // Restart
+        // Animations
+        // Save playback...
+        // Playback...
+
         
         return menu;
     }
@@ -103,11 +122,15 @@ public class MainFrame extends JFrame {
      * 
      * @return The JMenu object with all the JMenuItems in it.
      */
-    private JMenu createConsoleMenu() {
-        JMenu menu = new JMenu("Console");
-        menu.setMnemonic('C');
+    private JMenu createDemoMenu() {
+        JMenu menu = new JMenu("Demo");
+        menu.setMnemonic('D');
 
         // TODO: create menu items
+        JMenuItem item = new JMenuItem("Sample Layout");
+        item.addActionListener(e -> showPanel(SAMPLE_PANEL));
+        menu.add(item);
+
         return menu;
     }
 }
