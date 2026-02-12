@@ -1,23 +1,26 @@
 package com.mrstride.gui;
 
-import com.mrstride.Main;
 import com.mrstride.entity.Hero;
 import com.mrstride.services.DataService;
 import com.mrstride.services.EntityManager;
 
 import java.awt.Graphics;
+import java.io.FileNotFoundException;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 public class GamePanel extends AnimationPanel {
-    // These should be Constructor Injected into the GamePanel
+    // TODO: This should be made `final` and Constructor Injected into the GamePanel
+    private DataService dataService;
+    
     private EntityManager entityManager;
-    private DataService loader;
     private Logger actionsLogger;
     private Logger perfLogger;
+
     public GamePanel() {
-        // Use Dependency Injection to get the loader object
-        //loader = new HardCodedData();
+        // TODO: Use Dependency Injection to get the dataService
+
         this.actionsLogger = LogManager.getLogger("UserActionFile");
         this.perfLogger = LogManager.getLogger("PerformanceFile");
         restart();
@@ -25,8 +28,14 @@ public class GamePanel extends AnimationPanel {
 
     public void restart() {
         actionsLogger.info("Restart");
+        
         // recreate our entities and initialize everything
-        //entityManager = loader.loadLevel(1);
+        try {
+            entityManager = dataService.loadLevel(1);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
         // With all new entities, we need to create the event handlers
         createEventHandlers();
     }
@@ -41,7 +50,7 @@ public class GamePanel extends AnimationPanel {
 
         long startTime = System.currentTimeMillis();
         // do the physics for the animations
-        //entityManager.moveAllObjects();
+        entityManager.moveAllObjects();
         long stopTime = System.currentTimeMillis();
         perfLogger.debug("Updated Time: {}", (stopTime-startTime));
     }
@@ -61,7 +70,7 @@ public class GamePanel extends AnimationPanel {
     }
 
     private void createEventHandlers() {
-        // entityManager.createEventHandlers(this);
+        entityManager.createEventHandlers(this);
         // TODO: Add mouse listener and add key listener.
     }
 

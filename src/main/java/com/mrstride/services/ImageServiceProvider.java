@@ -1,22 +1,15 @@
 package com.mrstride.services;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URL;
-import java.rmi.UnexpectedException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -52,27 +45,8 @@ public class ImageServiceProvider implements ImageService {
 
     @Override
     public BufferedImage getImage(String identifier) throws IOException {
-        if (images.containsKey(identifier)) {
-            ImageInfoRecord iir = images.get(identifier);
-            if (iir.image == null) {
-                // We need to load (or download) the image
-                if (iir.isLocalFile()) {
-                    loadImageFromFile(iir);
-                    if (iir.needToConvertToTransparent()) {
-                        iir.image = ImageService.convertToTransparentPNG(iir.image, 8);
-                    }
-                } else {
-                    loadImageFromUrl(iir);
-                }               
-                return iir.image;
-            } else {
-                return iir.image;
-            }
-        }
-
-        // the id wasn't found in our map
-        consoleLogger.error("ERROR: Image identifier not found. Add it first.  {}", identifier);
-        throw new UnexpectedException("Image identifier not found. Add it first. " + identifier);
+        // ***** STUDENT MUST IMPLEMENT THIS *****
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     /**
@@ -87,28 +61,8 @@ public class ImageServiceProvider implements ImageService {
      */
     @Override
     public void addImageInfo(String id, String uri, int type) throws FileNotFoundException {
-        if (images.containsKey(id)) {
-            consoleLogger.error("ERROR: Image with id already added: {}", id);
-            throw new IllegalArgumentException("Image with id already added: " + id);
-        }
-        ImageInfoRecord iir = new ImageInfoRecord(id, uri, type);
-        // if the type indicates a local file, verify it exists
-        if (iir.isLocalFile()) {
-            // compose the absolutePath
-            // Unix/Linix/Mac will be "/users/name/path/file.jpg"
-            // Windows will be "C:/root/path/file.jpg"
-            
-            String path = iir.getAbsLocalPath();
-            File file = new File(path);
-            if (!file.exists()) {
-                consoleLogger.error("ERROR: Image not found at: {}", file.getAbsolutePath());
-                throw new FileNotFoundException("Image expected at: " + file.getAbsolutePath());
-            }
-            iir.uri = file.getAbsolutePath();
-        } else {
-            // Is there anything to do for a URL type? I think not.
-        }
-        images.put(id, iir);
+        // ***** STUDENT MUST IMPLEMENT THIS *****
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     public void addSheet(String id, SpriteSheetInfo ssi) {
@@ -121,14 +75,8 @@ public class ImageServiceProvider implements ImageService {
 
     @Override
     public boolean deleteImage(String id) throws IOException {
-        if (!images.containsKey(id)) {
-            consoleLogger.error("ERROR: Image not added: {}", id);
-            throw new IllegalArgumentException("Image not added: " + id);
-        }
-        ImageInfoRecord iir = images.get(id);
-
-        File file = new File(iir.getAbsLocalPath());
-        return file.delete();
+        // ***** STUDENT MUST IMPLEMENT THIS *****
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
@@ -149,41 +97,8 @@ public class ImageServiceProvider implements ImageService {
      * @throws IOException
      */
     private Image loadImageFromUrl(ImageInfoRecord iir) throws IOException {
-        if (iir.isLocalFile()) {
-            consoleLogger.error("ERROR: Local file can't be downloaded: {}", iir.id);
-            throw new UnexpectedException("Local file can't be downloaded.");
-        }
-
-        URI uri;
-        try {
-            uri = new URI(iir.uri);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            consoleLogger.error("ERROR: Invalid URI Syntax: {}", iir.uri);
-            throw new IOException("Invalid URI Syntax: " + iir.uri);
-        }
-        URL url = uri.toURL();
-        if (iir.saveLocally()) {
-            // download and save locally in one step
-            String destinationFile = iir.getAbsLocalPath();
-            try (InputStream in = url.openStream();
-                FileOutputStream out = new FileOutputStream(new File(destinationFile))) {
-
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = in.read(buffer)) != -1) {
-                    out.write(buffer, 0, bytesRead);
-                }
-            }
-            // Now that we have the file local, just load it
-            return loadImageFromFile(iir);
-        } else {
-            // just download the image
-            try (InputStream in = url.openStream()) {
-                iir.image = ImageIO.read(in);
-                return iir.image;
-            }
-        }
+        // ***** STUDENT MUST IMPLEMENT THIS *****
+        throw new UnsupportedOperationException("Not implemented yet");
     }
     
 }

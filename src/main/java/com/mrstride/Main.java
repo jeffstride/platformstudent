@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.mrstride.entity.EntityFactory;
 import com.mrstride.gui.MainFrame;
+import com.mrstride.services.DataService;
 import com.mrstride.services.ImageService;
 
 
@@ -28,6 +29,9 @@ public class Main implements CommandLineRunner {
 
     @Autowired
     private EntityFactory entityFactory;
+
+    @Autowired
+    private DataService dataService;
     
     public static void main( String[] args ) {
         deleteLogs();
@@ -54,7 +58,7 @@ public class Main implements CommandLineRunner {
             // It is a bit arduous because we have to add extra arguments.
             // It illustrates DI via Constructor Injection.
 
-            //MainFrame.theFrame = new MainFrame(imageService, entityFactory);
+            //MainFrame.theFrame = new MainFrame(dataService, imageService, entityFactory);
             //MainFrame.theFrame.createFrame();
         //});
     }

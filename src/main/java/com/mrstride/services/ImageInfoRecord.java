@@ -8,8 +8,6 @@ import java.nio.file.Paths;
  */
 public class ImageInfoRecord {
 
-    protected static final String PROJECT_PATH = "src/main/resources";
-
     public String id;
     public String uri;
     public String localPath;
@@ -35,7 +33,7 @@ public class ImageInfoRecord {
         if (localPath == null) {
             if (isLocalFile()) {
                 // the given uri for the file is added to the subdirectory
-                localPath = Paths.get(System.getProperty("user.dir"), ImageInfoRecord.PROJECT_PATH, 
+                localPath = Paths.get(System.getProperty("user.dir"), DataService.RESOURCES_PATH, 
                     getSubdirectory(), uri).toString();
             } else {
                 // use the final part of uri as name
@@ -43,7 +41,7 @@ public class ImageInfoRecord {
                 String name = uri.replace("\\", "/");
                 name = name.substring(name.lastIndexOf('/') + 1);
                 // a Trace statement would probably be good here
-                localPath = Paths.get(System.getProperty("user.dir"), ImageInfoRecord.PROJECT_PATH, 
+                localPath = Paths.get(System.getProperty("user.dir"), DataService.RESOURCES_PATH, 
                     getSubdirectory(), name).toString();
             }
         }

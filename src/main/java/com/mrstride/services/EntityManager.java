@@ -1,5 +1,8 @@
 package com.mrstride.services;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -8,11 +11,13 @@ import java.awt.Rectangle;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JPanel;
 
-import com.mrstride.entity.Hero;
 import com.mrstride.entity.Entity;
+import com.mrstride.entity.Hero;
 import com.mrstride.gui.Line;
 
 
@@ -32,16 +37,27 @@ import com.mrstride.gui.Line;
  * - Keep track of Entities in viewable window to optimize painting
  */
 public class EntityManager {
-    private List<Line> floors = new ArrayList<>();
-    private List<Rectangle> walls = new ArrayList<>();
-    private List<Entity> entities = new ArrayList<>();
-    private Hero hero;
+    private List<Line> floors;
+    private List<Rectangle> walls;
+    private Queue<Entity> entities; 
+
+    private Logger logger = LogManager.getLogger("console");
 
     public EntityManager() {
+        clear();
+    }
+
+    public void clear() {
+        logger.debug("Clearing Entity Manager");
+
         // This should be overridden when entities are added.
         // Initialize to something so that we don't have to always
         // check if the hero is null or not.
-        hero = new Hero(null, 100, 100, null);
+        // Hero.hero will get reset when a new Hero is instantiated
+
+        floors = new ArrayList<>();
+        walls = new ArrayList<>();
+        entities = new ConcurrentLinkedQueue<>(); // new ArrayList<>();
     }
 
     public void addFloor(Line floor) {
@@ -54,7 +70,7 @@ public class EntityManager {
 
     public void addEntity(Entity entity) {
         if (entity.isHero()) {
-            hero = (Hero) entity;
+            logger.debug("Adding Hero");
         }
         entities.add(entity);
     }
@@ -69,19 +85,6 @@ public class EntityManager {
 
     public int getEntityCount() {
         return entities.size();
-    }
-
-    /**
-     * This method is important for enabling the Playback feature.
-     * 
-     * @return The listener used by the Hero for listening to key input.
-     */
-    public KeyListener getHeroKeyListener() {
-        return hero.getKeyListener();
-    }
-
-    public Rectangle getHeroLocation() {
-        return hero.getBoundingRect();
     }
 
     /**
@@ -101,10 +104,6 @@ public class EntityManager {
         }
     }
 
-    public int getXOffset() {
-        return hero.getXOffset();
-    }
-
     /**
      * This method gets called by the GamePanel::update() which is triggered by the
      * AnimationPanel's Thread. This method will move all the objects every
@@ -112,7 +111,7 @@ public class EntityManager {
      */
     public void moveAllObjects() {
        
-        // Entities are prohibities (by convention) to remove themselves
+        // Entities are prohibited (by convention) to remove themselves
         // from the list of entities. But an entity may want to add/remove 
         // entities to this. For Assignment-One this won't be done.
         // Laster, entities would indicate this action which would be done
@@ -130,7 +129,7 @@ public class EntityManager {
 
     /**
      * This is on the GUI thread, triggered by a repaint() scheduled
-     * by the AnimationPanel thread that updates, paints, sleeps.
+     * by the paintTimer.
      * 
      * @param g       Graphics object to draw in
      * @param xOffset The amount to offset x-position
@@ -152,7 +151,7 @@ public class EntityManager {
      * This does not need to be synchronized because it is private and calling
      * methods will be synchronized.
      * 
-     * @param g       Graphiscs to draw in
+     * @param g       Graphics to draw in
      * @param xOffset The offset using the Hero (centered)
      * @param yOffset The offset using the Hero (centered)
      */

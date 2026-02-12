@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import com.mrstride.entity.Hero;
@@ -16,7 +15,6 @@ import com.mrstride.entity.Entity;
 import com.mrstride.gui.Line;
 
 @Service
-@Primary
 @Qualifier("HardCodedData")
 public class HardCodedData implements DataService {
 
@@ -37,8 +35,6 @@ public class HardCodedData implements DataService {
         entityMgr.addEntity(e);
 
         Map<String, Object> map = new HashMap<>();
-        map.put("isHit", Boolean.TRUE);
-        map.put("isHero", Boolean.TRUE);
         
         MovingEntity ent = new Hero(null, 400, 300, 30, 40, map); // new Hero(null /*"goldStar.png"*/, 400, 300);
         entityMgr.addEntity(ent);
@@ -70,7 +66,7 @@ public class HardCodedData implements DataService {
     }
 
     @Override
-    public EntityManager getEntityMananger() {
+    public EntityManager getEntityManager() {
         return entityMgr;
     }
     

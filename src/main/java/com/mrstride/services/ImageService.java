@@ -23,7 +23,7 @@ public interface ImageService {
     public Set<String> getImages();
 
     /**
-     * Returns the set of ids that are spritesheets.
+     * Returns the set of ids that are sprite sheets.
      * 
      * @return set of ids
      */

@@ -290,7 +290,7 @@ public class Entity  {
      *     Animation.MODE_OTHER = 6;
      */
     public void setAnimationMode(int mode) {
-        // TODO: Pass long to the animation object
+        // TODO: Pass the mode to the animation object
     }
     
     public BufferedImage getSpriteLeft() {

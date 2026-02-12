@@ -3,6 +3,7 @@ package com.mrstride.gui;
 import javax.swing.*;
 
 import com.mrstride.entity.EntityFactory;
+import com.mrstride.services.DataService;
 import com.mrstride.services.ImageService;
 
 // This class starts all the threads and creates all the panels. It also creates the menu options.
@@ -16,15 +17,17 @@ public class MainFrame extends JFrame {
 
     public static MainFrame theFrame = null;
 
+    private final DataService dataService;
     private final ImageService imageService;
-    private EntityFactory entityFactory;
+    private final EntityFactory entityFactory;
 
     // Our application may have many animated panels
     // But only one panel will be currently visible at a time
     private JPanel[] panels;
     private int currentPanel = -1;
 
-    public MainFrame(ImageService imageService, EntityFactory entityFactory) {
+    public MainFrame(DataService dataService, ImageService imageService, EntityFactory entityFactory) {
+        this.dataService = dataService;
         this.imageService = imageService;
         this.entityFactory = entityFactory;
     }
