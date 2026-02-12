@@ -274,11 +274,23 @@ public class Entity  {
     }
 
     /**
-     * Another way to keep track of direction, Left or Right.
+     * Keep track of direction, Left or Right.
+     * Pass along to the Animation object.
      * @param direction
      */
     public void setDirection(int direction) {
         this.direction = direction;
+    }
+
+    /**
+     * Derived classes would call this to put the sprite into the correct animation mode.
+     *     Animation.MODE_STILL = 0;
+     *     Animation.MODE_RUNNING = 2;
+     *     Animation.MODE_JUMPING = 4;
+     *     Animation.MODE_OTHER = 6;
+     */
+    public void setAnimationMode(int mode) {
+        // TODO: Pass long to the animation object
     }
     
     public BufferedImage getSpriteLeft() {

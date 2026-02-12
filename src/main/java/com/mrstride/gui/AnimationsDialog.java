@@ -6,19 +6,24 @@ import javax.swing.JPanel;
 /**
  * The Student will do the following things:
  * 
- * 1) Create an ImageService (and Test). Large Task.
- * 2) Use IoC to get the ImageService via getBean().
- * 3) Add needed images for this dialog to the image service
- * 4) Create this Dialog
- *     - Use LayoutManagers
- *     - Enable the user to examine images and animations
+ * 1) Use Constructor Injection to get dependencies.
+ * 2) Display a dialog that allows the user to view all the images available.
+ * 
+ * To help, look at the Sample Layout to see how to place components,
+ * and how to show/hide components.  
+ * 
+ * The Dialog should eventually allow one to see all the sprite sheets,
+ * resize images, and watch animations at various speeds.  
+ * 
+ * Students should use services as much as possible in this implementation.  
  */
 public class AnimationsDialog extends JPanel {
 
     public AnimationsDialog() {
-        addComponents();
         // change this to some Layout Manager
         setLayout(null);
+
+        addComponents();
     }
 
     public void addComponents() {

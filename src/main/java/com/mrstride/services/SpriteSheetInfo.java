@@ -9,10 +9,10 @@ package com.mrstride.services;
  * 
  * Modes in Animation class:
  *   public static final int MODE_STILL = 0;
- *   public static final int MODE_RUNNING = 2;
- *   public static final int MODE_JUMPING = 4;
- *   public static final int MODE_FLYING = 6;
- *   private static final int MAX_MODES = 7;
+ *   public static final int MODE_RUNNING = 1;
+ *   public static final int MODE_JUMPING = 2;
+ *   public static final int MODE_OTHER = 3;
+ *   private static final int MAX_MODE_INDEX = 3;
  */
 public record SpriteSheetInfo(
     String imageId,         // the name of the ID in the image service

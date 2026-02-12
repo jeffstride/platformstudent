@@ -21,7 +21,6 @@ public class Hero extends FallingEntity {
     private boolean leftPressed;
     private boolean rightPressed;
     private boolean jump;
-    private int facingDirection;
 
     private Logger actionsLogger;
 
@@ -114,11 +113,11 @@ public class Hero extends FallingEntity {
                 int keyCode = e.getKeyCode();
                 if (keyCode == KeyEvent.VK_LEFT) {
                     leftPressed = true;
-                    facingDirection = Animation.FACING_LEFT;
+                    setDirection(Animation.FACING_LEFT);
                     actionsLogger.debug("Left Pressed");
                 } else if (keyCode == KeyEvent.VK_RIGHT) {
                     rightPressed = true;
-                    facingDirection = Animation.FACING_RIGHT;
+                    setDirection(Animation.FACING_RIGHT);
                     actionsLogger.debug("Right Pressed");
                 } else if (keyCode == KeyEvent.VK_UP) {
                     actionsLogger.debug("Up Pressed");
@@ -161,10 +160,5 @@ public class Hero extends FallingEntity {
      */
     public int getXOffset() {
         return this.x - X_CENTER;
-    }
-
-    @Override
-    public int getDirection() {
-        return this.facingDirection;
     }
 }

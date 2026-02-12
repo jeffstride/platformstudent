@@ -20,10 +20,10 @@ public class Animation {
     // a good idea at one point, but now isn't so sure.
     // You, the student, can use Animation constants that suit you.
     public static final int MODE_STILL = 0;
-    public static final int MODE_RUNNING = 2;
-    public static final int MODE_JUMPING = 4;
-    public static final int MODE_FLYING = 6;
-    private static final int MAX_MODES = 7;
+    public static final int MODE_RUNNING = 1;
+    public static final int MODE_JUMPING = 2;
+    public static final int MODE_OTHER = 3;
+    private static final int MAX_MODE_INDEX = 3;
 
     public static final int FACING_RIGHT = 0;
     public static final int FACING_LEFT = 1;
@@ -31,13 +31,16 @@ public class Animation {
     /**
      * Add more instance fields here as you need them
      */
+    private int mode;
+    private int direction;
     private String id;
     private int width;
     private int height;
-    private int mode;
+    private Function<Integer, Integer> animationEnded;
 
     /**
-     * Create an animation object.
+     * Create an animation object. These dependencies are injected
+     * by the Animation Factory service.
      * 
      * @param id The id of the spritesheet with the animation
      * @param width The display width (not frame width)
@@ -91,8 +94,10 @@ public class Animation {
      */
     public void addAnimationEndedListener(Function<Integer, Integer> listener) {
         // we don't have a list of listeners. Just one.
-        // Save the listener: animationEnded = listener;
-        // When an animation sequences ends, invoke it.
+        // Save the listener
+        animationEnded = listener;
+
+        // TODO: When an animation sequences ends, invoke it if not null.
     }
 
     /**
@@ -109,10 +114,18 @@ public class Animation {
     /**
      * Gets the current animation mode
      * 
-     * @return one of the Animation MODES. Includes Animation.FACING_LEFT/RIGHT.
+     * @return one of the Animation MODES. Excludes Animation.FACING_LEFT/RIGHT.
      */
     public int getMode() {
         return mode;
+    }
+
+    public int getDirection() {
+        return direction;
+    }
+
+    public void setDirection(int direction) {
+        this.direction = direction;
     }
 
     /**
@@ -121,12 +134,10 @@ public class Animation {
      * animation repeats when complete.
      * 
      * mode is set by client via setMode(). options are: MODE_STILL, MODE_RUNNING, etc. 
-     * direction = FACING_LEFT, FACING_RIGHT
      * 
-     * @param direction FACING_RIGHT == 0. FACING_LEFT == 1.
      * @return The buffered image to draw
      */
-    public BufferedImage getCurrentFrame(int direction) {
+    public BufferedImage getCurrentFrame() {
         // TODO: Calculate the frame number by using the tick value.
         // If we are at the end of an animation, reset as necessary.
         // Return the cached image in the correct direction.

@@ -4,7 +4,6 @@ import javax.swing.JPanel;
 
 import java.awt.Color;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public abstract class AnimationPanel extends JPanel {
 

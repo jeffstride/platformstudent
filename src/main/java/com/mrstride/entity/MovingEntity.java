@@ -150,7 +150,7 @@ public class MovingEntity extends Entity {
 
         // delay resetting canJump to false to help us be more responsive
         if (timeOffFloor > 2) {
-            // Going down a sloped floor can cause entity to be non-reponsive to jumping.
+            // Going down a sloped floor can cause entity to be non-responsive to jumping.
             // Clear the canJump only after a few iterations.
             // canJump and currentFloor will set in the method reactToFloor
             physicsLogger.debug("Off Floor");
@@ -296,7 +296,7 @@ public class MovingEntity extends Entity {
         if (yVelocity >= 0 && overUnderLine(floor)) {
 
             Rectangle2D.Double rect = Line.getUnionRect(boundingRect, nextBoundingRect);
-            // BUG: not always on floor so we can't jump, so add +1 to the hieght of
+            // BEWARE: not always on floor so we can't jump, so add +1 to the height of
             // bounding rect.
             // This also prevents us from restoring entity to above floor when walking
             // underneath it.

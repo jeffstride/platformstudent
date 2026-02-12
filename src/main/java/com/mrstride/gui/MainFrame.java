@@ -2,8 +2,6 @@ package com.mrstride.gui;
 
 import javax.swing.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.mrstride.entity.EntityFactory;
 import com.mrstride.services.ImageService;
 
