@@ -18,8 +18,9 @@ public class GamePanel extends AnimationPanel {
     private Logger actionsLogger;
     private Logger perfLogger;
 
-    public GamePanel() {
+    public GamePanel(DataService dataService) {
         // TODO: Use Dependency Injection to get the dataService
+        this.dataService = dataService;
 
         this.actionsLogger = LogManager.getLogger("UserActionFile");
         this.perfLogger = LogManager.getLogger("PerformanceFile");

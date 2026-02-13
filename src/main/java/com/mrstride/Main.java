@@ -7,6 +7,7 @@ import javax.swing.SwingUtilities;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,6 +32,7 @@ public class Main implements CommandLineRunner {
     private EntityFactory entityFactory;
 
     @Autowired
+    //@Qualifier("HardCodedData")
     private DataService dataService;
     
     public static void main( String[] args ) {
@@ -49,7 +51,7 @@ public class Main implements CommandLineRunner {
         // TODO: uncomment this code 
 
         // Invoke the UI Thread to create the Main frame. 
-        // SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
             // For illustration purposes, we pass along the services
             // to MainFrame which passes them along to AnimationsDialog.
             // This is an outside-in pattern and illustrates a manual
@@ -58,9 +60,9 @@ public class Main implements CommandLineRunner {
             // It is a bit arduous because we have to add extra arguments.
             // It illustrates DI via Constructor Injection.
 
-            //MainFrame.theFrame = new MainFrame(dataService, imageService, entityFactory);
-            //MainFrame.theFrame.createFrame();
-        //});
+            MainFrame.theFrame = new MainFrame(dataService, imageService, entityFactory);
+            MainFrame.theFrame.createFrame();
+        });
     }
     
     private static void deleteLogs() {

@@ -2,6 +2,7 @@
 package com.mrstride.services;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Set;
@@ -67,7 +68,7 @@ public interface ImageService {
      */
     public static BufferedImage resize(BufferedImage originalImage, int targetWidth, int targetHeight) {
         // ***** STUDENT MUST IMPLEMENT THIS *****
-        return null;
+        return originalImage;
     }
 
     public static BufferedImage flipHorizontally(BufferedImage originalImage) {
@@ -85,7 +86,7 @@ public interface ImageService {
     // public SpriteSheetInfo getSpriteSheetInfo(String id);
     public boolean isAnimated(String id);
 
-    public static BufferedImage convertToTransparentPNG(BufferedImage image, int i) {
+    public static BufferedImage convertToTransparentPNG(BufferedImage image, int i, File origFile) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'convertToTransparentPNG'");
     }

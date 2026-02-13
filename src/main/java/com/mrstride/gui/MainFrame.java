@@ -38,7 +38,7 @@ public class MainFrame extends JFrame {
         addMenuBar();
         panels = new JPanel[3];
 
-        panels[GAME_PANEL] = new GamePanel();
+        panels[GAME_PANEL] = new GamePanel(dataService);
         panels[ANIMATIONS_PANEL] = new AnimationsDialog();
         panels[SAMPLE_PANEL] = new SampleLayout(imageService);
 
@@ -48,6 +48,9 @@ public class MainFrame extends JFrame {
             panel.setVisible(false);
         }
         // TODO: set size, title, and close operation
+        this.setSize(WIDTH, HEIGHT);
+        this.setTitle("CSS490 Platform");
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         this.currentPanel = -1;
         showPanel(GAME_PANEL);
@@ -55,6 +58,7 @@ public class MainFrame extends JFrame {
         System.out.println("All done creating our frame");
 
         // TODO: JFrame must be set to visible 
+        this.setVisible(true);
     }
 
     public static void showPanel(int index) {

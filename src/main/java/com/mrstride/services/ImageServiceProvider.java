@@ -1,6 +1,7 @@
 package com.mrstride.services;
 
 import java.io.IOException;
+import java.rmi.UnexpectedException;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -45,8 +46,28 @@ public class ImageServiceProvider implements ImageService {
 
     @Override
     public BufferedImage getImage(String identifier) throws IOException {
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (images.containsKey(identifier)) {
+            ImageInfoRecord iir = images.get(identifier);
+            if (iir.image == null) {
+                // We need to load (or download) the image
+                if (iir.isLocalFile()) {
+                    loadImageFromFile(iir);
+                    if (iir.needToConvertToTransparent()) {
+                        File origFile = new File(iir.getAbsLocalPath());
+                        iir.image = ImageService.convertToTransparentPNG(iir.image, 8, origFile);
+                    }
+                } else {
+                    loadImageFromUrl(iir);
+                }               
+                return iir.image;
+            } else {
+                return iir.image;
+            }
+        }
+
+        // the id wasn't found in our map
+        consoleLogger.error("ERROR: Image identifier not found. Add it first.  {}", identifier);
+        throw new UnexpectedException("Image identifier not found. Add it first. " + identifier);
     }
 
     /**
@@ -61,8 +82,28 @@ public class ImageServiceProvider implements ImageService {
      */
     @Override
     public void addImageInfo(String id, String uri, int type) throws FileNotFoundException {
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (images.containsKey(id)) {
+            consoleLogger.error("ERROR: Image with id already added: {}", id);
+            throw new IllegalArgumentException("Image with id already added: " + id);
+        }
+        ImageInfoRecord iir = new ImageInfoRecord(id, uri, type);
+        // if the type indicates a local file, verify it exists
+        if (iir.isLocalFile()) {
+            // compose the absolutePath
+            // Unix/Linix/Mac will be "/users/name/path/file.jpg"
+            // Windows will be "C:/root/path/file.jpg"
+            
+            String path = iir.getAbsLocalPath();
+            File file = new File(path);
+            if (!file.exists()) {
+                consoleLogger.error("ERROR: Image not found at: {}", file.getAbsolutePath());
+                throw new FileNotFoundException("Image expected at: " + file.getAbsolutePath());
+            }
+            iir.uri = file.getAbsolutePath();
+        } else {
+            // Is there anything to do for a URL type? I think not.
+        }
+        images.put(id, iir);
     }
 
     public void addSheet(String id, SpriteSheetInfo ssi) {
