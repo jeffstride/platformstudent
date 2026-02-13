@@ -1,6 +1,8 @@
 
 package com.mrstride.services;
 
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -67,13 +69,20 @@ public interface ImageService {
      * @return
      */
     public static BufferedImage resize(BufferedImage originalImage, int targetWidth, int targetHeight) {
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        return originalImage;
+        double scaleX = (double) targetWidth / originalImage.getWidth();
+        double scaleY = (double) targetHeight / originalImage.getHeight();
+        AffineTransform transform = AffineTransform.getScaleInstance(scaleX, scaleY);
+        AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR);
+        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, originalImage.getType());
+        op.filter(originalImage, resizedImage);
+        return resizedImage;
     }
 
     public static BufferedImage flipHorizontally(BufferedImage originalImage) {
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        return null;
+        AffineTransform transform = AffineTransform.getScaleInstance(-1, 1);
+        transform.translate(-originalImage.getWidth(), 0);
+        AffineTransformOp op = new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        return op.filter(originalImage, null);
     }
 
     /**
