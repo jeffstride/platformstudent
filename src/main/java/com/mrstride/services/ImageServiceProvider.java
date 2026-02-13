@@ -28,8 +28,6 @@ public class ImageServiceProvider implements ImageService {
 
     private Map<String, SpriteSheetInfo> sheets = new HashMap<>();
 
-    // Need to use a "Constructor injection" to get the logging service
-    // to be available at the time of the constructor.
     public ImageServiceProvider() {
         consoleLogger = LogManager.getLogger("console");
     }
@@ -44,6 +42,15 @@ public class ImageServiceProvider implements ImageService {
         return sheets.keySet();
     }
 
+    /**
+     * Gets the image that maps to the identifier.
+     * 
+     * Once the Image is retrieved from the file, the image should be cached.
+     * 
+     * @param identifier The name of the image information
+     * @return The BufferedImage of the image  
+     * @throws IOException if the file for the image is bad (e.g. not found)
+     */
     @Override
     public BufferedImage getImage(String identifier) throws IOException {
         if (images.containsKey(identifier)) {
@@ -77,7 +84,6 @@ public class ImageServiceProvider implements ImageService {
      * @param uri Could be "relativePath/to/image.jpg" or "https://a.b/image.jpg"
      * @param type Flags to determine if the image is cached locally, the resource directory,
      *        and whether it is a single image or a sprite sheet.
-     * @return true if successful
      * @throws FileNotFoundException 
      */
     @Override
@@ -114,6 +120,9 @@ public class ImageServiceProvider implements ImageService {
         return sheets.get(id);
     }
 
+    /**
+     * Deletes the file on the local machine that matches the image id.
+     */
     @Override
     public boolean deleteImage(String id) throws IOException {
         // ***** STUDENT MUST IMPLEMENT THIS *****
@@ -125,6 +134,14 @@ public class ImageServiceProvider implements ImageService {
         return sheets.containsKey(id);
     }
 
+    /**
+     * Reads the png/jpg file for the given image and saves the BufferedImage into
+     * the ImageInfoRecord.
+     * 
+     * @param iir The ImageInfoRecord to use to find the file and save the BufferedImage
+     * @return Image (the BufferedImage)
+     * @throws IOException
+     */
     private Image loadImageFromFile(ImageInfoRecord iir) throws IOException {
         File file = new File(iir.getAbsLocalPath());
         iir.image = ImageIO.read(file);
@@ -133,8 +150,8 @@ public class ImageServiceProvider implements ImageService {
 
     /**
      * Loads the image from the URL
-     * @param iir
-     * @return
+     * @param iir The ImageInfoRecord that contains information about the image
+     * @return Image found at the URL
      * @throws IOException
      */
     private Image loadImageFromUrl(ImageInfoRecord iir) throws IOException {
