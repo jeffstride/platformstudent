@@ -82,8 +82,9 @@ public interface ImageService {
      */
     public boolean deleteImage(String identifier) throws IOException;
 
-    // public void addSheet(String id, SpriteSheetInfo ssi);
-    // public SpriteSheetInfo getSpriteSheetInfo(String id);
+    public void addSheet(String id, SpriteSheetInfo ssi);
+    public SpriteSheetInfo getSpriteSheetInfo(String id);
+    
     public boolean isAnimated(String id);
 
     public static BufferedImage convertToTransparentPNG(BufferedImage image, int i, File origFile) {
