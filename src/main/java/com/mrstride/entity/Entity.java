@@ -147,20 +147,11 @@ public class Entity  {
         loadEntityImages(id, useImageSize);
     }
 
-    /**
-     * An entity may not move around, or fall, but it may be animated.
-     * Derived classes would override this to move the object as necessary.
-     *  
-     * @param walls
-     * @param floors
-     */
-    public void update(List<Rectangle> walls, List<Line> floors) {
-        // The background entities move anywhere without restrictions.
-        // They have no collisions with walls, ceilings, or floors.
-    }
 
     /**
-     * This is an alternative way to add Entities during update that should enable
+     * This is called to update (move) an Entity.
+     * 
+     * This is also the way to add Entities during update that should enable
      * us to use parallelStream to process all the Entities.
      * A derived class that wants to add entities during update() would add them to
      * the thread-safe Queue provided here.
@@ -168,10 +159,10 @@ public class Entity  {
      * @param walls
      * @param floors
      * @param toAdd
-     * @return True to keep the item in the list of entities. False to remove it.
+     * @return True to keep this Entity in the list of entities. False to remove it.
      */
     public boolean update(List<Rectangle> walls, List<Line> floors, Queue<Entity> toAdd) {
-        update(walls, floors);
+
         return true;
     }
 

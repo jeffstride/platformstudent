@@ -118,8 +118,9 @@ public class EntityManager {
         // after all entities are updated.
         // 
         
+        // TODO: create a Queue of Entities to pass in
         for (Entity entity : entities) {
-            entity.update(walls, floors);
+            entity.update(walls, floors, null);
         }
 
         // In the future, we'd add/remove entities here
