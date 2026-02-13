@@ -3,6 +3,7 @@ package com.mrstride.entity;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.awt.Rectangle;
 import java.awt.event.KeyListener;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import com.mrstride.gui.Line;
 import com.mrstride.services.Animation;
 import com.mrstride.services.AnimationFactory;
 import com.mrstride.services.ImageService;
+import com.mrstride.services.SpriteSheetInfo;
 
 /**
  * This base Entity does not move. It does not fall. It does not collide with anything.
@@ -36,6 +38,8 @@ public class Entity  {
     protected int y;
     protected int width;
     protected int height;
+    private boolean isAnimated;
+    private Animation animation;
 
     // determines whether to resize according to the original size of the image
     private boolean useImageSize;
@@ -225,6 +229,39 @@ public class Entity  {
      */
     private void loadEntityImages(String id, boolean useImageSize) {
         // TODO: Use the image service to load the BufferedImage for this Entity
+        if (id != null && id.length() > 0) {
+            try {
+                // see if our image id is an animated spritesheet
+                isAnimated = imageService.isAnimated(id);
+                if (isAnimated) {
+                    // we are animated. Get our animation object.
+                    SpriteSheetInfo ssi = imageService.getSpriteSheetInfo(id);
+
+                    if (useImageSize) {
+                        width = ssi.size()[0];
+                        height = ssi.size()[1];
+                    }
+
+                    // get our animation initialized with our images and size
+                    animation = aniFactory.createAnimation(id, width, height);
+                } else {
+                    spriteRight = (BufferedImage) imageService.getImage(id);
+                    // set width/height according to image size
+                    if (useImageSize) {
+                        width = spriteRight.getWidth();
+                        height = spriteRight.getHeight();
+                    } else {
+                        // resize our image
+                        spriteRight = ImageService.resize(spriteRight, width, height);
+                    }
+                    // Get our left-facing image
+                    spriteLeft = ImageService.flipHorizontally(spriteRight);
+                }
+            } catch (IOException e) {
+                spriteRight = null;
+                e.printStackTrace();
+            }
+        }        
 
         // assure that we have our bounding rectangle set
         boundingRect = new Rectangle(x, y, width, height);
