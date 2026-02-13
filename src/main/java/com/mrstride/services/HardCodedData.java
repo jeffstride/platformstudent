@@ -61,13 +61,13 @@ public class HardCodedData implements DataService {
         entityMgr.addEntity(hero);
 
         // Create the Cloud entity
-        Entity cloud = new Entity("cloud", 500, 150, map);
+        Entity cloud = new Entity("cloud", 500, 150, 150, 150, map);
         cloud.setServices(null, imageService, null);
         cloud.init();
         entityMgr.addEntity(cloud);
 
-        int[][] floors = { { 0, 600, 1000, 620}, {1003, 650, 1090, 650}, {1090, 650, 1390, 600 }, 
-            /* absolute bottom */ { -400, 700, 1800, 700}};
+        int[][] floors = { {0, 600, 1000, 620}, {1003, 650, 1090, 650}, {1090, 650, 1390, 600 }, 
+            /* absolute bottom */ {-400, 700, 1800, 700}};
         for (int[] xy : floors) {
             Line line = new Line(xy[0], xy[1], xy[2], xy[3]);
             entityMgr.addFloor(line);
