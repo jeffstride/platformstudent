@@ -44,7 +44,6 @@ public class MainFrame extends JFrame {
 
         for (JPanel panel : panels) {
             panel.setBounds(0, 0, MainFrame.WIDTH, MainFrame.HEIGHT);
-            this.add(panel);
             panel.setVisible(false);
         }
         // TODO: set size, title, and close operation
@@ -70,6 +69,7 @@ public class MainFrame extends JFrame {
 
         // hide the current panel
         if (currentPanel != -1) {
+            this.remove(panels[currentPanel]);
             panels[currentPanel].setVisible(false);
             if (panels[currentPanel] instanceof AnimationPanel) {
                 AnimationPanel ap = (AnimationPanel) panels[currentPanel];
@@ -79,6 +79,7 @@ public class MainFrame extends JFrame {
 
         // show the correct panel
         currentPanel = index;
+        this.add(panels[currentPanel]);
         panels[currentPanel].setVisible(true);
         panels[currentPanel].setFocusable(true);
         panels[currentPanel].setRequestFocusEnabled(true);
