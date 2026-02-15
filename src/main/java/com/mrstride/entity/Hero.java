@@ -81,10 +81,10 @@ public class Hero extends FallingEntity {
         }
 
         if (canJump && jump) {
-            consoleLogger.debug("jumping!");
+            physicsLogger.debug("jumping!");
             yVelocity = -15;
         } else if (jump) {
-            consoleLogger.debug("not on floor. Can't jump.");
+            physicsLogger.debug("not on floor. Can't jump.");
         } else if (canJump && yVelocity == 0) {
             // Entity is not jumping. We are MODE_STILL or MODE_RUNNING
             // TODO: update animation as necessary

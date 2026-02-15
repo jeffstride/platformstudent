@@ -7,17 +7,16 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JPanel;
 
 import com.mrstride.entity.Entity;
-import com.mrstride.entity.Hero;
 import com.mrstride.gui.Line;
 
 
@@ -38,7 +37,6 @@ import com.mrstride.gui.Line;
  */
 public class EntityManager {
     private List<Line> floors;
-    private List<Rectangle> walls;
     private Queue<Entity> entities; 
 
     private Logger logger = LogManager.getLogger("console");
@@ -56,16 +54,11 @@ public class EntityManager {
         // Hero.hero will get reset when a new Hero is instantiated
 
         floors = new ArrayList<>();
-        walls = new ArrayList<>();
-        entities = new ConcurrentLinkedQueue<>(); // new ArrayList<>();
+        entities = new LinkedList<>();
     }
 
     public void addFloor(Line floor) {
         floors.add(floor);
-    }
-
-    public void addWall(Rectangle wall) {
-        walls.add(wall);
     }
 
     public void addEntity(Entity entity) {
@@ -77,10 +70,6 @@ public class EntityManager {
 
     public int getFloorCount() {
         return floors.size();
-    }
-
-    public int getWallCount() {
-        return walls.size();
     }
 
     public int getEntityCount() {
@@ -113,14 +102,18 @@ public class EntityManager {
        
         // Entities are prohibited (by convention) to remove themselves
         // from the list of entities. But an entity may want to add/remove 
-        // entities to this. For Assignment-One this won't be done.
-        // Laster, entities would indicate this action which would be done
-        // after all entities are updated.
-        // 
+        // entities to this. 
         
-        // TODO: create a Queue of Entities to pass in
-        for (Entity entity : entities) {
-            entity.update(walls, floors, null);
+        // This is a sequential, non-thread-safe method
+        Queue<Entity> toAdd = new LinkedList<>();
+
+        // Sequential processing that allows removal
+        Iterator<Entity> iter = entities.iterator();
+        while (iter.hasNext()) {
+            Entity ent = iter.next();
+            if (!ent.update(floors, toAdd)) {
+                iter.remove();
+            }
         }
 
         // In the future, we'd add/remove entities here
@@ -171,12 +164,6 @@ public class EntityManager {
         for (Line floor : floors) {
             g.drawLine((int) floor.x1 - xOffset, (int) floor.y1 - yOffset, (int) floor.x2 - xOffset,
                     (int) floor.y2 - yOffset);
-        }
-
-        // Set the wall color
-        g2d.setColor(Color.LIGHT_GRAY);
-        for (Rectangle wall : walls) {
-            g.fillRect(wall.x - xOffset, wall.y - yOffset, wall.width, wall.height);
         }
     }
 

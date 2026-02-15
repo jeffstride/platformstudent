@@ -160,12 +160,11 @@ public class Entity  {
      * A derived class that wants to add entities during update() would add them to
      * the thread-safe Queue provided here.
      * 
-     * @param walls
      * @param floors
      * @param toAdd
      * @return True to keep this Entity in the list of entities. False to remove it.
      */
-    public boolean update(List<Rectangle> walls, List<Line> floors, Queue<Entity> toAdd) {
+    public boolean update(List<Line> floors, Queue<Entity> toAdd) {
 
         return true;
     }

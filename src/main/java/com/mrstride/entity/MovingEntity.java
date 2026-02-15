@@ -27,12 +27,36 @@ import com.mrstride.gui.Line;
  * to react somehow. The reaction is to stop moving or bounce off the barrier
  * and to call the event onHitX to allow for extra reactions.
  * 
+ *
+ * COLLISION DETECTION ALGORITHM OVERVIEW:
+ * 
+ * Each update cycle follows these steps:
+ * 1. Update velocities based on input/physics
+ * 2. Calculate intended X movement (nextBoundingRect)
+ * 3. Check horizontal collisions (walls)
+ * 4. Calculate intended Y movement
+ * 5. Check vertical collisions (floors/ceilings)
+ * 6. Move to final validated position
+ * 
+ * KEY CONCEPTS:
+ * - boundingRect: Current position
+ * - nextBoundingRect: Desired position (validated by collision checks)
+ * - currentFloor: The floor we're currently standing on (null if airborne)
+ * - canJump: Whether jump input should be accepted
+ * - Coyote time: Grace period after leaving a floor where jumps still work
+ * 
+ * COORDINATE SYSTEM:
+ * - X increases rightward
+ * - Y increases downward (screen coordinates)
+ * - Positive yVelocity = falling
+ * - Negative yVelocity = jumping/rising
  */
 public class MovingEntity extends Entity {
+    private static final int COYOTE_TIME = 2;
+    private static final int MOVE_ERROR_COUNT = 20;
+
     protected int xVelocity;
     protected int yVelocity;
-    private long timeLastMove;
-    private long updateTime;
 
     // if we can move, we can fall. Are we on the ground?
     // just keep track of the last floor we were on!
@@ -76,24 +100,59 @@ public class MovingEntity extends Entity {
      * A derived class that wants to add entities during update() would add them to
      * the thread-safe Queue provided here.
      * 
-     * @param walls
      * @param floors
      * @param toAdd
      * @return True to keep the item in the list of entities. False to remove it.
      */    
     @Override
-    public boolean update(List<Rectangle> walls, List<Line> floors, Queue<Entity> toAdd) {
-        calcNextBoundingRect();
+    public boolean update(List<Line> floors, Queue<Entity> toAdd) {
+        updateVelocities();
+        physicsLogger.debug("[StartMove] ({}, {}) OnFloor: {}, xVel: {}  yVel: {}", x, y, (currentFloor != null ? currentFloor : "False"), xVelocity, yVelocity); 
 
-        // BEWARE: Check walls/ceilings before floors so that if we jump into a wall toward
-        // a floor that we don't "land" on the floor on the other side, zero out velocities,
-        // and then get push back outside of wall and basically hover.
-        //
-        // BEWARE: Incorrect ordering of can also cause the entity to get pulled up onto the 
-        // floor and through the ceiling.
-        checkWalls(walls);
-        checkCeilings(floors);
-        checkFloors(floors);
+        // Phase 1: Horizontal movement and collision
+        boolean hitWall = false;
+        calcNextBoundingRectX();
+        if (xVelocity != 0) {
+            hitWall = checkWalls(floors);
+            // move our x-direction before checking our y-direction
+            move();
+        }
+        
+        // Phase 2: Vertical movement and collision
+
+        // If we hit a wall, then don't worry about floors during this update.
+        // Except, if we need to fall. Otherwise, entity will cling to wall in mid-air.
+        if (!hitWall || (currentFloor == null && yVelocity > 0)) {
+            calcNextBoundingRectY();
+            if (yVelocity >= 0) {
+                // The entity is potentially falling. 
+                // React to floors and reset currentFloor.
+                checkFloors(floors); 
+            } else {
+                // Moving up.
+                canJump = false;
+                timeOffFloor = 0;
+
+                // BEWARE: We can jump up off a floor, hit a ceiling and land back on the floor
+                // without recognizing that we are on the floor again. This can cause the entity
+                // to react to the floor on the next update as a wall in a bizarre way.
+                // To account for this, re-react to the currentFloor after reacting to ceilings.
+                Line priorFloor = currentFloor;
+
+                // React to ceilings
+                checkCeilings(floors);
+
+                currentFloor = null;
+
+                // React to prior floor
+                if (priorFloor != null) {
+                    // this will reset the floor if necessary
+                    reactToFloor(priorFloor);
+                }
+            }
+        }
+
+        // our nextBoundingRect is where we want to move to
         move();
 
         return true;
@@ -107,7 +166,6 @@ public class MovingEntity extends Entity {
     private void move() {
         // we should have already have had our next bounding rect checked and adjusted
         // Just move to our nextBoundingRect.
-        timeLastMove = updateTime;
         boundingRect = new Rectangle(nextBoundingRect);
         x = boundingRect.x;
         y = boundingRect.y;
@@ -124,6 +182,10 @@ public class MovingEntity extends Entity {
         if (yVelocity < 0) {
             // we are moving up, jumping or flying. Check Ceilings
             for (Line line : lines) {
+                // don't hit the floor we are standing on
+                if (line == currentFloor) {
+                    continue;
+                }
                 if (reactToCeiling(line)) {
                     return true;
                 }
@@ -140,19 +202,11 @@ public class MovingEntity extends Entity {
      * @return if we hit a floor
      */
     private boolean checkFloors(List<Line> floors) {
-        if (yVelocity < 0) {
-            // if we were moving up, no need to check floors. Be done!
-            canJump = false;
-            currentFloor = null;
-            timeOffFloor = 0;
-            return false;
-        }
-
         // delay resetting canJump to false to help us be more responsive
-        if (timeOffFloor > 2) {
+        if (timeOffFloor > COYOTE_TIME) {
             // Going down a sloped floor can cause entity to be non-responsive to jumping.
             // Clear the canJump only after a few iterations.
-            // canJump and currentFloor will set in the method reactToFloor
+            // canJump and currentFloor are set in the method reactToFloor.
             physicsLogger.debug("Off Floor");
             this.canJump = false;
         }
@@ -175,74 +229,65 @@ public class MovingEntity extends Entity {
 
     /**
      * Check every wall in the list to see how we react to it.
+     * Our floors can effectively act like walls.
      * 
      * @param walls List of walls.
+     * @return true if we hit and reacted to a wall
      */
-    private void checkWalls(List<Rectangle> walls) {
-        for (Rectangle wall : walls) {
-            if (reactToWall(wall)) {
-                break;
+    private boolean checkWalls(List<Line> walls) {
+        physicsLogger.debug("Checking Walls. Cur Floor: {}  Cur Rect: {}", (currentFloor != null), boundingRect);
+
+        boolean hitWall = false;
+        for (Line wall : walls) {
+            if (wall == currentFloor) {
+                // if we are on a floor, don't treat it like a wall
+                continue;
             }
+            // keep checking walls so that the entity will not intersect any
+            hitWall |= reactToWall(wall);
         }
+
+        // If we hit any wall, zero out our x-velocity.
+        // BEWARE: Don't change x-velocity before checking all walls because each wall check
+        // looks at the current x-velocity.
+        if (hitWall) {
+            this.xVelocity = 0;
+        }
+        return hitWall;
     }
 
     /**
      * This is called before we start a move and do all the collision
      * detection to see if we can move and how we move.
      * 
-     * Calculate the nextBoundingRect.
-     * Update the velocities of the current Entity.
-     * Set the currentFloor that this Entity is on (or not).
+     * Calculate the nextBoundingRect when moving in x-direction only.
      * 
-     * @return Return the Rectangle that is our new, desired boundingRectangle
+     * This may update the velocities of the current Entity.
      */
-    private void calcNextBoundingRect() {
-        // allow derived classes to fall, or not
-        updateVelocities();
-
-        updateTime = System.currentTimeMillis();
-        physicsLogger.debug("[StartMove]xVel: {}  yVel: {}  timeDiff: {}", xVelocity, yVelocity,
-                (updateTime - timeLastMove));
-
+    private void calcNextBoundingRectX() {
         // Gets the Bounding HitBox for where the entity wants to move to next.
         int newX = (int) (x + xVelocity);
-        int newY = (int) (y + yVelocity);
-        nextBoundingRect = new Rectangle(newX, newY, boundingRect.width, boundingRect.height);
-    }
-
-    protected void updateVelocities() {
-        // derived classes can override to enabling falling or other changes
-        // due to keyboard input, etc.
+        nextBoundingRect = new Rectangle(newX, y, boundingRect.width, boundingRect.height);
     }
 
     /**
-     * See if we hit the wall and react accordingly.
-     * Stop moving and be outside the wall.
+     * This is called after moving in the X-Direction when the Entity hit nothing.
+     * Calculate the nextBoundingRect when moving in Y-direction only.
+     * The current nextBoundRect already includes the x-direction move.
+     */
+    private void calcNextBoundingRectY() {
+        // Gets the Bounding HitBox for where the entity wants to move to next.
+        int newY = (int) (nextBoundingRect.y + yVelocity);
+        nextBoundingRect = new Rectangle(nextBoundingRect.x, newY, boundingRect.width, boundingRect.height);
+    }
+
+    /**
+     * Updates x & y velocities, but not the x or y positions.
      * 
-     * @param wall
-     * @return true if we hit the wall
+     * Derived classes must override to enabling falling or other movement
+     * due to keyboard input, etc.
      */
-    private boolean reactToWall(Rectangle wall) {
-
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        // TODO: Decide if we hit the wall
-        // TODO: Log information
-        // TODO: Update nextBoundingRect in onHitWall
-        // TODO: call onHitWall
-        return false;
-    }
-
-    /**
-     * The MovingEntity has a default implementation when hitting a wall.
-     * Derived classes may override to do additional work or alternative things.
-     * @param wall The wall the Entity hit.
-     */
-    protected void onHitWall(Rectangle wall) {
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        // TODO: update velocities
-        // TODO: Update nextBoundingRect (which is the next position)
-        // TODO: Consider the case when the Hero is falling on top of a wall
-        //       where the Hero could get moved to one side or the other.
+    protected void updateVelocities() {
     }
 
     /**
@@ -257,41 +302,12 @@ public class MovingEntity extends Entity {
     }
 
     /**
-     * See if we hit a ceiling and react properly.
-     * 
-     * @param line A line for the ceiling
-     * @return true if Entity hit a ceiling and bounced down
-     */
-    private boolean reactToCeiling(Line line) {
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        // TODO: Decide if we hit the ceiling
-        // TODO: Log information
-        // TODO: Update nextBoundingRect in onHitCeiling
-        // TODO: call onHitCeiling
-        return false;
-    }
-
-    /**
-     * When a MovingEntity hits a ceiling, this is called.
-     * Derived classes may want to do more or less
-     * 
-     * @param line The ceiling we hit
-     * @param rect The Union rectangle of boundingRect and nextBoundingRect
-     */
-    protected void onHitCeiling(Line line, Rectangle2D.Double rect) {
-        // ***** STUDENT MUST IMPLEMENT THIS *****
-        // TODO: Log information
-        // TODO: Update nextBoundingRect (which is the next position)
-        // TODO: velocities       
-    }
-
-    /**
      * 
      * @param floor A line represented using Rectangle fields
      * @return true if Entity is on this floor
      */
     private boolean reactToFloor(Line floor) {
-        physicsLogger.debug("[reactToFloor]");
+        physicsLogger.debug("[reactToFloor] {}", floor);
         // see if we are horizontally above/below the floor line
         if (yVelocity >= 0 && overUnderLine(floor)) {
 
@@ -321,25 +337,55 @@ public class MovingEntity extends Entity {
      * @param rect The Union rectangle of boundingRect and nextBoundingRect
      */
     protected void onHitFloor(Line floor, Rectangle2D.Double rect) {
-        physicsLogger.debug("  Hit! Union: {} floor {}", rectString(rect), floor);
+        int moves = 0;
+        physicsLogger.debug("  Hit floor! Union: {} floor {}", rectString(rect), floor);
         // boost the entity to be above the floor
         do {
             physicsLogger.debug("    pushing up 1");
             // push the rectangle up until it doesn't hit anymore
             rect.y -= 1;
+
+            if (++moves > MOVE_ERROR_COUNT) {
+                physicsLogger.error(" Hit floor error. Moved too many times.");
+                break;
+            }
         } while (floor.intersectsRect(rect));
 
-        physicsLogger.debug("On Floor");
-        canJump = true;
-        timeOffFloor = 0;
-        currentFloor = floor;
+        if (isWalkableSlope(floor, 45)) {
+            physicsLogger.debug("  Setting currentFloor = {}", floor);
+            canJump = true;
+            timeOffFloor = 0;
+            currentFloor = floor;
+
+            // zero out vertical velocity
+            yVelocity = 0;
+        } else {
+            // This will cause the entity to not stick to vertical walls
+            yVelocity = 2;
+        }
 
         // move the entity to be on this floor at floorY
         nextBoundingRect.y = (int) (rect.y + rect.height) - nextBoundingRect.height;
         physicsLogger.debug("    Pushed to: {} floor {}", rectString(nextBoundingRect), floor);
+    }
 
-        // zero out vertical velocity
-        yVelocity = 0;
+    /**
+     * Determines if a line is walkable based on its slope angle.
+     * Vertical walls (90°) and steep slopes are not walkable.
+     * 
+     * @param line The line to check
+     * @param maxWalkableAngle Maximum walkable angle in degrees (typically 45-50)
+     * @return true if the slope can be walked on
+     */
+    private boolean isWalkableSlope(Line line, double maxWalkableAngle) {
+        double dx = line.x2 - line.x1;
+        double dy = line.y2 - line.y1;
+        
+        // Calculate angle from horizontal (in degrees)
+        double angleRadians = Math.atan2(Math.abs(dy), Math.abs(dx));
+        double angleDegrees = Math.toDegrees(angleRadians);
+        
+        return angleDegrees <= maxWalkableAngle;
     }
 
     /**
@@ -353,8 +399,96 @@ public class MovingEntity extends Entity {
         int x1 = nextBoundingRect.x;
         int x2 = nextBoundingRect.x + nextBoundingRect.width;
 
-        // if the left or right point is between the line bounds
-        // then this entity is over/under the line
-        return ((x1 >= line.x1 && x1 <= line.x2) || (x2 >= line.x1 && x2 <= line.x2));
+        int bMin = (int) Math.min(line.x1, line.x2);
+        int bMax = (int) Math.max(line.x1, line.x2);
+        return (x2 >= bMin) && (bMax >= x1);
+    }
+
+    /**
+     * See if we hit the wall due to moving left or right. 
+     * When hitting walls, there is no logic necessary for moving vertically.
+     * 
+     * Don't forget to log to physicsLogger.debug() for debugging purposes.
+     * 
+     * @param wall The Line of the wall to check
+     * @return true if we hit the wall
+     */
+    private boolean reactToWall(Line wall) {
+        
+        boolean hit = wall.intersectsRect(nextBoundingRect);
+        if (hit) {
+            onHitWall(wall);
+        } else {
+            physicsLogger.debug("   No Wall: Next: {}  wall {}", rectString(nextBoundingRect), wall);
+        }
+        return hit;
+    }
+
+    /**
+     * Check if we hit this ceiling. If we do, go below it.
+     *
+     * @param line The ceiling
+     * @return true if Entity hit a ceiling and bounced down
+     */
+    private boolean reactToCeiling(Line line) {
+        // no need to check ceilings unless we are going upwards
+        // and the ceiling line is close to us.
+        boolean check = yVelocity < 0 && overUnderLine(line);
+        physicsLogger.debug("[reactToCeiling] {}", check ? "check" : "skip");
+
+        if (check) {
+            // BEWARE: Moving and jumping off a floor can cause us to initially intersect
+            // the floor we are jumping off of. This Line should not be the currentFloor.
+            boolean hit = line.intersectsRect(nextBoundingRect);
+            if (hit) {
+                onHitCeiling(line);
+            }
+            // stop looking if we hit a ceiling
+            return hit;
+        }
+
+        // we need to look at other ceilings
+        return false;
+    }
+
+    /**
+     *       ******** STUDENT MUST IMPLEMENT THE BELOW METHODS ********
+     */
+
+
+    /**
+     * This Entity hit a wall. Normal moving entities will move away from the wall.
+     * Derived classes may react differently to hitting a wall. They may remove
+     * themselves or do something different.
+     *
+     * Implementation "recipe":
+     *   while we are hitting the wall:
+     *       move away from the wall
+     *       change union rect and nextBoundingRect
+     * 
+     * Don't forget to log to physicsLogger.debug() for debugging purposes.
+     * 
+     * @param wall The wall the Entity hit.
+     */
+    protected void onHitWall(Line wall) {
+        // STUDENT MUST IMPLEMENT
+    }
+
+    /**
+     * When a MovingEntity hits a ceiling, this is called.
+     * Derived classes may want to do more or less
+     * 
+     * Implementation "recipe":
+     *   while we are hitting the ceiling:
+     *       move down 
+     *       change union rect and nextBoundingRect
+     *   update yVelocity
+     * 
+     * Don't forget to log to physicsLogger.debug() for debugging purposes.
+     * 
+     * @param line The ceiling we hit
+     */
+    protected void onHitCeiling(Line line) {
+        // STUDENT MUST IMPLEMENT
     }
 }

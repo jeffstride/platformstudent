@@ -1,6 +1,5 @@
 package com.mrstride.services;
 
-import java.awt.Rectangle;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,17 +65,27 @@ public class HardCodedData implements DataService {
         cloud.init();
         entityMgr.addEntity(cloud);
 
-        int[][] floors = { {0, 600, 1000, 620}, {1003, 650, 1090, 650}, {1090, 650, 1390, 600 }, 
-            /* absolute bottom */ {-400, 700, 1800, 700}};
+        int[][] floors = {
+            {   0, 600, 1005, 620},
+            {1003, 650, 1090, 650}, 
+            {1090, 650, 1390, 600},
+            {1800, 700, 1800, 300},
+            {-400, 700, 1800, 700},
+            {-400, 300, -400, 700},
+            {1550, 610, 1650, 610},
+            {1550, 610, 1400, 200},
+            {-320, 615, -150, 520},
+            {-150, 520,    0, 300},
+
+            {1001, 621, 1001, 649},
+            {1006, 621, 1006, 649},
+            {0, 550, 0, 630},
+            {-65, 600,  -55,  600}
+        };
         for (int[] xy : floors) {
             Line line = new Line(xy[0], xy[1], xy[2], xy[3]);
             entityMgr.addFloor(line);
-        } 
-
-        Rectangle wall = new Rectangle(1001, 621, 5, 30);
-        entityMgr.addWall(wall);
-        wall = new Rectangle(0, 550, 10, 80);
-        entityMgr.addWall(wall);
+        }
 
         return entityMgr;
     }
